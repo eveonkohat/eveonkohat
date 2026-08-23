@@ -1,4 +1,4 @@
-# Zobly Bike SaaS
+# EveonKohat Bike SaaS
 
 A premium showroom management application — inventory, purchases, sales, installment
 plans, accounts/cash book, expenses, reports, and P&L — built with Next.js (App Router)
@@ -52,13 +52,13 @@ on every table, and creates a few Postgres functions used by the app:
 ## 3. Create a login and seed sample data
 
 1. In the Supabase dashboard: **Authentication → Users → Add user**, e.g.
-   `demo@zobly.net` with a password of your choice.
+   `demo@eveonkohat.com` with a password of your choice.
 2. Run the app (`npm run dev`) and log in with that user once. This triggers
    `bootstrap_tenant_and_profile()`, creating your tenant + owner profile.
 3. (Optional) Run `supabase/seed.sql` against your project to populate realistic
    demo data — sample stock, purchases, sales, installment customers, and expenses —
    for that tenant. It's idempotent and looks up the tenant by the email
-   `demo@zobly.net`, so adjust that in the script if you used a different email.
+   `demo@eveonkohat.com`, so adjust that in the script if you used a different email.
 
 ## 4. Run it
 

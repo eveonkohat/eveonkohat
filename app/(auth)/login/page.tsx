@@ -53,7 +53,7 @@ export default async function LoginPage({
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Zap className="size-4" fill="currentColor" />
           </span>
-          Zobly
+          EveonKohat
         </div>
 
         <div className="relative z-10 space-y-2">
@@ -70,7 +70,7 @@ export default async function LoginPage({
       {/* Form panel */}
       <div className="flex flex-col justify-center gap-6 p-8 sm:p-10">
         <span className="inline-flex w-fit items-center rounded-full bg-primary px-4 py-1.5 text-xs font-bold tracking-wide text-primary-foreground uppercase">
-          Zobly Bike SaaS
+          EveonKohat Bike SaaS
         </span>
 
         <div className="space-y-1.5">
@@ -83,7 +83,7 @@ export default async function LoginPage({
         <LoginForm redirectTo={redirectTo} />
 
         <p className="border-t pt-5 text-center text-xs text-muted-foreground">
-          Securely managed by Zobly Platform
+          Securely managed by EveonKohat Platform
         </p>
       </div>
     </div>

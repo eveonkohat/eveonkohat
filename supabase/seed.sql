@@ -5,7 +5,7 @@
 -- codebase). Before running this seed:
 --
 --   1. In the Supabase dashboard, go to Authentication > Users > Add user
---      and create a user (e.g. demo@zobly.net / a password of your choice).
+--      and create a user (e.g. demo@eveonkohat.com / a password of your choice).
 --   2. Log into the app once with that user. The first authenticated
 --      request calls public.bootstrap_tenant_and_profile(), which creates
 --      the tenant + profile row automatically.
@@ -37,11 +37,11 @@ declare
 begin
   select tenant_id into demo_tenant_id
   from public.profiles
-  where email = 'demo@zobly.net'
+  where email = 'demo@eveonkohat.com'
   limit 1;
 
   if demo_tenant_id is null then
-    raise notice 'No profile found for demo@zobly.net yet. Create the auth user and log in once before seeding.';
+    raise notice 'No profile found for demo@eveonkohat.com yet. Create the auth user and log in once before seeding.';
     return;
   end if;
 

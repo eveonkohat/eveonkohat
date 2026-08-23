@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Zobly Bike SaaS",
-    template: "%s | Zobly Bike SaaS",
+    default: "EveonKohat Bike SaaS",
+    template: "%s | EveonKohat Bike SaaS",
   },
   description:
     "Manage your premium bike showroom inventory, sales, and installments with ease.",
