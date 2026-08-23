@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Zobly Bike SaaS
 
-## Getting Started
+A premium showroom management application — inventory, purchases, sales, installment
+plans, accounts/cash book, expenses, reports, and P&L — built with Next.js (App Router)
+and Supabase.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js 16 (App Router, Server Components, Server Actions, Turbopack)
+- TypeScript
+- Supabase (Postgres, Auth, Storage) via `@supabase/ssr`
+- Tailwind CSS v4 + shadcn/ui
+- React Hook Form + Zod
+- Recharts
+
+## 1. Configure Supabase
+
+Copy `.env.local.example` (or edit `.env.local` directly) with your project's URL and
+publishable/anon key:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<your anon/publishable key>
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Never put the service-role key in `NEXT_PUBLIC_*` — if you need it (see
+"User Management" below), set it server-only as `SUPABASE_SERVICE_ROLE_KEY`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 2. Apply the database schema
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run every file in `supabase/migrations/` **in order** against your project — either
+paste each one into the Supabase SQL Editor, or, with the Supabase CLI installed:
 
-## Learn More
+```bash
+supabase login
+supabase link --project-ref <project-ref>
+supabase db push
+```
 
-To learn more about Next.js, take a look at the following resources:
+This creates the multi-tenant schema (`tenants`, `profiles`, `bikes`, `purchases`,
+`bike_sales`, `pos_sales`, `installment_*`, `accounts`, `account_transactions`,
+`expenses`, `parties`, …), enables Row Level Security with tenant-isolation policies
+on every table, and creates a few Postgres functions used by the app:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `bootstrap_tenant_and_profile()` — auto-provisions a tenant + owner profile the
+  first time a new auth user logs in.
+- `post_ledger_entry(...)` / `transfer_between_accounts(...)` — atomic cash-book
+  movements (used by Sales, Purchases, Expenses, Installments, Accounts).
+- `adjust_party_balance(...)` — atomic supplier/party balance updates.
+- `factory_reset_tenant()` — powers Settings → System Reset.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 3. Create a login and seed sample data
 
-## Deploy on Vercel
+1. In the Supabase dashboard: **Authentication → Users → Add user**, e.g.
+   `demo@zobly.net` with a password of your choice.
+2. Run the app (`npm run dev`) and log in with that user once. This triggers
+   `bootstrap_tenant_and_profile()`, creating your tenant + owner profile.
+3. (Optional) Run `supabase/seed.sql` against your project to populate realistic
+   demo data — sample stock, purchases, sales, installment customers, and expenses —
+   for that tenant. It's idempotent and looks up the tenant by the email
+   `demo@zobly.net`, so adjust that in the script if you used a different email.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 4. Run it
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm install
+npm run dev    # http://localhost:3000
+npm run build  # production build
+```
+
+## Architecture
+
+- `app/(auth)/login` — email/password sign-in (Server Action), no public sign-up
+  (matches the reference: users are provisioned, not self-registered).
+- `app/(dashboard)/*` — every authenticated route, behind `proxy.ts` (Next 16's
+  successor to `middleware.ts`), which redirects unauthenticated requests to
+  `/login` and refreshes the Supabase session cookie on every request.
+- `lib/supabase/{client,server,middleware}.ts` — SSR-safe Supabase clients.
+- `lib/data/*` — read-only Server Component data fetchers, always tenant-scoped.
+- `lib/actions/*` — Server Actions for all mutations, validated with Zod, tenant
+  ownership re-verified server-side, RLS as the last line of defense.
+- `types/database.ts` — hand-written types mirroring the SQL schema (no relational
+  `select()` joins are used against the typed client — related rows are fetched
+  separately and joined in application code, since the type layer doesn't model
+  foreign-key relationships).
+
+## Known differences from the reference app
+
+- **Per-row invoice printing**: list pages have a real "Print" action (prints the
+  current view) and a "View" action (real detail dialog with the record's fields),
+  but there's no dedicated per-invoice print layout.
+- **Add User (Settings → User Management)**: creating a new Supabase Auth user
+  requires the Admin API, which requires a service-role key. That key is
+  intentionally not included in this project (never put it in client code, and it
+  wasn't provided). The action is wired up and will work once `SUPABASE_SERVICE_ROLE_KEY`
+  is set server-side and the admin-invite call is implemented — right now it
+  returns a clear, honest error rather than pretending to succeed.
+- **Reports needing data this schema doesn't track** (Tax Report, Agent Commission,
+  Staff Payroll) show an honest "not available yet" state explaining what model is
+  missing, instead of fabricated numbers.
+- **Government Verification** links out to a search query for the relevant
+  province's official portal rather than a hardcoded government URL, since guessing
+  live `.gov.pk` URLs isn't reliable.
+- **Terms translator** (Installments → Terms): the reference's "Translate Online"
+  feature needs a third-party translation API; that's out of scope here, so this
+  clone keeps the real "Write Terms" functionality only.

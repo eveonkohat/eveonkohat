@@ -1,0 +1,189 @@
+"use client"
+
+import { useActionState, useState } from "react"
+import { useFormStatus } from "react-dom"
+import { Loader2, ShoppingCart } from "lucide-react"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { createBikeSale } from "@/lib/actions/sales"
+import { formatCurrency } from "@/lib/utils/format"
+import type { Account, Bike } from "@/types/database"
+
+type FormState = { error?: string }
+
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+      Save Sale
+    </Button>
+  )
+}
+
+export function BikeSaleDialog({ bikes, accounts }: { bikes: Bike[]; accounts: Account[] }) {
+  const [open, setOpen] = useState(false)
+  const [bikeId, setBikeId] = useState("")
+  const [total, setTotal] = useState(0)
+  const [received, setReceived] = useState(0)
+  const bike = bikes.find((b) => b.id === bikeId)
+  const today = new Date().toISOString().slice(0, 10)
+  const balance = Math.max(total - received, 0)
+
+  const [state, formAction] = useActionState<FormState, FormData>(async (_prev, formData) => {
+    const result = await createBikeSale(formData)
+    if (!result.success) return { error: result.error }
+    toast.success("Sale recorded")
+    setOpen(false)
+    setBikeId("")
+    setTotal(0)
+    setReceived(0)
+    return {}
+  }, {})
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <ShoppingCart className="size-4" />
+          Bike Sale
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>New Bike Sale</DialogTitle>
+          <DialogDescription>Sell a bike from your current stock.</DialogDescription>
+        </DialogHeader>
+
+        <form action={formAction} className="grid gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="bike_id">Select Bike</Label>
+            <Select
+              name="bike_id"
+              value={bikeId}
+              onValueChange={(v) => {
+                setBikeId(v)
+                const selected = bikes.find((b) => b.id === v)
+                if (selected) setTotal(Number(selected.purchase_price))
+              }}
+            >
+              <SelectTrigger id="bike_id" className="w-full">
+                <SelectValue placeholder="Search available bikes…" />
+              </SelectTrigger>
+              <SelectContent>
+                {bikes.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.make} {b.model} {b.color ? `— ${b.color}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {bike ? (
+              <p className="text-xs text-muted-foreground">
+                Chassis: {bike.chassis_no || "—"} · Motor: {bike.engine_no || "—"}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="customer_name">Customer Name</Label>
+              <Input id="customer_name" name="customer_name" required placeholder="Customer name" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="customer_phone">Phone Number</Label>
+              <Input id="customer_phone" name="customer_phone" placeholder="03xx-xxxxxxx" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="customer_cnic">CNIC</Label>
+              <Input id="customer_cnic" name="customer_cnic" placeholder="xxxxx-xxxxxxx-x" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="date">Date</Label>
+              <Input id="date" name="date" type="date" defaultValue={today} required />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="total_amount">Total Amount (PKR)</Label>
+              <Input
+                id="total_amount"
+                name="total_amount"
+                type="number"
+                step="0.01"
+                value={total}
+                onChange={(e) => setTotal(Number(e.target.value) || 0)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="received_amount">Received Amount (PKR)</Label>
+              <Input
+                id="received_amount"
+                name="received_amount"
+                type="number"
+                step="0.01"
+                value={received}
+                onChange={(e) => setReceived(Number(e.target.value) || 0)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Balance</Label>
+              <div className="flex h-9 items-center rounded-md bg-muted px-3 font-semibold text-destructive">
+                {formatCurrency(balance)}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="payment_account_id">Payment Account</Label>
+              <Select name="payment_account_id">
+                <SelectTrigger id="payment_account_id" className="w-full">
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Input id="notes" name="notes" placeholder="Additional notes…" />
+          </div>
+
+          {state.error ? <p className="text-sm font-medium text-destructive">{state.error}</p> : null}
+
+          <DialogFooter>
+            <SubmitButton />
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
