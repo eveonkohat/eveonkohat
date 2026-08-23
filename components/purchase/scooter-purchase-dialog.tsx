@@ -23,7 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { createBikePurchase } from "@/lib/actions/purchases"
+import { createScooterPurchase } from "@/lib/actions/purchases"
 import { formatCurrency } from "@/lib/utils/format"
 import type { Party } from "@/types/database"
 
@@ -39,7 +39,7 @@ function SubmitButton({ label }: { label: string }) {
   )
 }
 
-export function BikePurchaseDialog({ parties }: { parties: Party[] }) {
+export function ScooterPurchaseDialog({ parties }: { parties: Party[] }) {
   const [open, setOpen] = useState(false)
   const [price, setPrice] = useState(0)
   const [tax, setTax] = useState(0)
@@ -52,7 +52,7 @@ export function BikePurchaseDialog({ parties }: { parties: Party[] }) {
   const today = new Date().toISOString().slice(0, 10)
 
   const [state, formAction] = useActionState<FormState, FormData>(async (_prev, formData) => {
-    const result = await createBikePurchase(formData)
+    const result = await createScooterPurchase(formData)
     if (!result.success) return { error: result.error }
     toast.success("Purchase added to stock")
     setOpen(false)
@@ -69,7 +69,7 @@ export function BikePurchaseDialog({ parties }: { parties: Party[] }) {
       <DialogTrigger asChild>
         <Button variant="secondary">
           <ShoppingCart className="size-4" />
-          Bike Purchase
+          Scooter Purchase
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
@@ -97,7 +97,7 @@ export function BikePurchaseDialog({ parties }: { parties: Party[] }) {
               <Input id="make" name="make" required placeholder="e.g. Evee" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="model">Bike Model</Label>
+              <Label htmlFor="model">Scooter Model</Label>
               <Input id="model" name="model" required placeholder="e.g. S1" />
             </div>
             <div className="space-y-2">

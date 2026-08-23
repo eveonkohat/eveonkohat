@@ -70,13 +70,13 @@ export default async function LoginPage({
       {/* Form panel */}
       <div className="flex flex-col justify-center gap-6 p-8 sm:p-10">
         <span className="inline-flex w-fit items-center rounded-full bg-primary px-4 py-1.5 text-xs font-bold tracking-wide text-primary-foreground uppercase">
-          EveonKohat Bike SaaS
+          EveonKohat Scooter SaaS
         </span>
 
         <div className="space-y-1.5">
           <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your premium bike showroom inventory and sales with ease.
+            Manage your premium scooter showroom inventory and sales with ease.
           </p>
         </div>
 

@@ -1,7 +1,7 @@
 import { z } from "zod"
 
-export const bikeSaleSchema = z.object({
-  bike_id: z.string().min(1, "Select a bike to sell"),
+export const scooterSaleSchema = z.object({
+  scooter_id: z.string().min(1, "Select a scooter to sell"),
   customer_name: z.string().min(1, "Customer name is required"),
   customer_cnic: z.string().optional(),
   customer_phone: z.string().optional(),
@@ -32,5 +32,5 @@ export const posSaleSchema = z.object({
   invoice_notes: z.string().optional(),
 })
 
-export type BikeSaleInput = z.infer<typeof bikeSaleSchema>
+export type ScooterSaleInput = z.infer<typeof scooterSaleSchema>
 export type PosSaleInput = z.infer<typeof posSaleSchema>

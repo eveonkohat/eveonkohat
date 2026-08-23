@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react"
 import {
   LayoutDashboard,
-  Bike,
+  Scooter,
   ShoppingBasket,
   Repeat,
   Building2,
@@ -22,7 +22,7 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Stock", href: "/stock", icon: Bike },
+  { label: "Stock", href: "/stock", icon: Scooter },
   { label: "Purchase", href: "/purchase", icon: ShoppingBasket },
   { label: "Sale", href: "/sale", icon: Repeat },
   { label: "Parties", href: "/parties", icon: Building2 },

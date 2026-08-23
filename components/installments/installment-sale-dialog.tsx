@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog"
 import { createInstallmentSale } from "@/lib/actions/installments"
 import { formatCurrency } from "@/lib/utils/format"
-import type { Bike, InstallmentCustomer } from "@/types/database"
+import type { Scooter, InstallmentCustomer } from "@/types/database"
 
 type FormState = { error?: string }
 
@@ -41,10 +41,10 @@ function SubmitButton() {
 
 export function InstallmentSaleDialog({
   customers,
-  bikes,
+  scooters,
 }: {
   customers: InstallmentCustomer[]
-  bikes: Bike[]
+  scooters: Scooter[]
 }) {
   const [open, setOpen] = useState(false)
   const [total, setTotal] = useState(0)
@@ -100,13 +100,13 @@ export function InstallmentSaleDialog({
               </Select>
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="bike_id">Bike (Optional)</Label>
-              <Select name="bike_id">
-                <SelectTrigger id="bike_id" className="w-full">
-                  <SelectValue placeholder="Select a bike from stock" />
+              <Label htmlFor="scooter_id">Scooter (Optional)</Label>
+              <Select name="scooter_id">
+                <SelectTrigger id="scooter_id" className="w-full">
+                  <SelectValue placeholder="Select a scooter from stock" />
                 </SelectTrigger>
                 <SelectContent>
-                  {bikes.map((b) => (
+                  {scooters.map((b) => (
                     <SelectItem key={b.id} value={b.id}>
                       {b.make} {b.model} {b.color ? `— ${b.color}` : ""}
                     </SelectItem>
@@ -115,7 +115,7 @@ export function InstallmentSaleDialog({
               </Select>
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="item_description">Item Description (if no bike selected)</Label>
+              <Label htmlFor="item_description">Item Description (if no scooter selected)</Label>
               <Input id="item_description" name="item_description" placeholder="e.g. Evee S1" />
             </div>
             <div className="space-y-2">

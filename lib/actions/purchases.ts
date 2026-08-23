@@ -4,14 +4,14 @@ import { revalidatePath } from "next/cache"
 import { requireTenant } from "./require-tenant"
 import { postLedgerEntry } from "./ledger"
 import {
-  bikePurchaseSchema,
+  scooterPurchaseSchema,
   otherPurchaseSchema,
   purchaseReturnSchema,
 } from "@/lib/validations/purchases"
 import type { ActionResult } from "./require-tenant"
 
-export async function createBikePurchase(formData: FormData): Promise<ActionResult> {
-  const parsed = bikePurchaseSchema.safeParse({
+export async function createScooterPurchase(formData: FormData): Promise<ActionResult> {
+  const parsed = scooterPurchaseSchema.safeParse({
     vehicle_type: formData.get("vehicle_type"),
     make: formData.get("make"),
     model: formData.get("model"),
@@ -63,7 +63,7 @@ export async function createBikePurchase(formData: FormData): Promise<ActionResu
     return { success: false, error: error?.message ?? "Could not create purchase" }
   }
 
-  const bikeRows = Array.from({ length: d.quantity }, () => ({
+  const scooterRows = Array.from({ length: d.quantity }, () => ({
     tenant_id: tenantId,
     purchase_id: purchase.id,
     make: d.make,
@@ -77,9 +77,9 @@ export async function createBikePurchase(formData: FormData): Promise<ActionResu
     status: "in_stock" as const,
   }))
 
-  const { error: bikesError } = await supabase.from("bikes").insert(bikeRows)
-  if (bikesError) {
-    return { success: false, error: bikesError.message }
+  const { error: scootersError } = await supabase.from("scooters").insert(scooterRows)
+  if (scootersError) {
+    return { success: false, error: scootersError.message }
   }
 
   if (d.party_id && totalAmount > 0) {
@@ -164,7 +164,7 @@ export async function createOtherPurchase(formData: FormData): Promise<ActionRes
 
 export async function createPurchaseReturn(formData: FormData): Promise<ActionResult> {
   const parsed = purchaseReturnSchema.safeParse({
-    bike_id: formData.get("bike_id"),
+    scooter_id: formData.get("scooter_id"),
     return_date: formData.get("return_date"),
     agreed_return_amount: formData.get("agreed_return_amount"),
     notes: formData.get("notes"),
@@ -177,16 +177,16 @@ export async function createPurchaseReturn(formData: FormData): Promise<ActionRe
   const { supabase, tenantId } = await requireTenant()
   const d = parsed.data
 
-  const { data: bike } = await supabase
-    .from("bikes")
+  const { data: scooter } = await supabase
+    .from("scooters")
     .select("purchase_id")
-    .eq("id", d.bike_id)
+    .eq("id", d.scooter_id)
     .eq("tenant_id", tenantId)
     .single()
 
   const { error: returnError } = await supabase.from("purchase_returns").insert({
     tenant_id: tenantId,
-    bike_id: d.bike_id,
+    scooter_id: d.scooter_id,
     return_date: d.return_date,
     agreed_return_amount: d.agreed_return_amount,
     notes: d.notes || null,
@@ -196,21 +196,21 @@ export async function createPurchaseReturn(formData: FormData): Promise<ActionRe
     return { success: false, error: returnError.message }
   }
 
-  const { error: bikeError } = await supabase
-    .from("bikes")
+  const { error: scooterError } = await supabase
+    .from("scooters")
     .update({ status: "returned" })
-    .eq("id", d.bike_id)
+    .eq("id", d.scooter_id)
     .eq("tenant_id", tenantId)
 
-  if (bikeError) {
-    return { success: false, error: bikeError.message }
+  if (scooterError) {
+    return { success: false, error: scooterError.message }
   }
 
-  if (bike?.purchase_id && d.agreed_return_amount > 0) {
+  if (scooter?.purchase_id && d.agreed_return_amount > 0) {
     const { data: purchase } = await supabase
       .from("purchases")
       .select("party_id")
-      .eq("id", bike.purchase_id)
+      .eq("id", scooter.purchase_id)
       .single()
 
     if (purchase?.party_id) {

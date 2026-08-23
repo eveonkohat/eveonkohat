@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache"
 import { requireTenant } from "./require-tenant"
 import { postLedgerEntry } from "./ledger"
-import { bikeSaleSchema, posSaleSchema } from "@/lib/validations/sales"
+import { scooterSaleSchema, posSaleSchema } from "@/lib/validations/sales"
 import type { ActionResult } from "./require-tenant"
 import type { PosSaleItem } from "@/types/database"
 
-export async function createBikeSale(formData: FormData): Promise<ActionResult> {
-  const parsed = bikeSaleSchema.safeParse({
-    bike_id: formData.get("bike_id"),
+export async function createScooterSale(formData: FormData): Promise<ActionResult> {
+  const parsed = scooterSaleSchema.safeParse({
+    scooter_id: formData.get("scooter_id"),
     customer_name: formData.get("customer_name"),
     customer_cnic: formData.get("customer_cnic"),
     customer_phone: formData.get("customer_phone"),
@@ -29,22 +29,22 @@ export async function createBikeSale(formData: FormData): Promise<ActionResult> 
   const balance = Math.max(d.total_amount - d.received_amount, 0)
   const paymentStatus = balance === 0 ? "received" : d.received_amount > 0 ? "partial" : "pending"
 
-  const { data: bike } = await supabase
-    .from("bikes")
+  const { data: scooter } = await supabase
+    .from("scooters")
     .select("status")
-    .eq("id", d.bike_id)
+    .eq("id", d.scooter_id)
     .eq("tenant_id", tenantId)
     .single()
 
-  if (!bike || bike.status !== "in_stock") {
-    return { success: false, error: "This bike is no longer available for sale" }
+  if (!scooter || scooter.status !== "in_stock") {
+    return { success: false, error: "This scooter is no longer available for sale" }
   }
 
   const { data: sale, error } = await supabase
-    .from("bike_sales")
+    .from("scooter_sales")
     .insert({
       tenant_id: tenantId,
-      bike_id: d.bike_id,
+      scooter_id: d.scooter_id,
       customer_name: d.customer_name,
       customer_cnic: d.customer_cnic || null,
       customer_phone: d.customer_phone || null,
@@ -64,9 +64,9 @@ export async function createBikeSale(formData: FormData): Promise<ActionResult> 
   }
 
   await supabase
-    .from("bikes")
+    .from("scooters")
     .update({ status: "sold", sold_price: d.total_amount })
-    .eq("id", d.bike_id)
+    .eq("id", d.scooter_id)
     .eq("tenant_id", tenantId)
 
   if (d.received_amount > 0 && d.payment_account_id) {
@@ -75,7 +75,7 @@ export async function createBikeSale(formData: FormData): Promise<ActionResult> 
       accountId: d.payment_account_id,
       direction: "in",
       amount: d.received_amount,
-      category: "Bike Sale",
+      category: "Scooter Sale",
       description: `Sale to ${d.customer_name}`,
       sourceType: "sale",
       sourceId: sale.id,
@@ -157,29 +157,29 @@ export async function createPosSale(formData: FormData): Promise<ActionResult> {
   return { success: true }
 }
 
-export async function deleteBikeSale(id: string): Promise<ActionResult> {
+export async function deleteScooterSale(id: string): Promise<ActionResult> {
   const { supabase, tenantId } = await requireTenant()
 
   const { data: sale } = await supabase
-    .from("bike_sales")
-    .select("bike_id")
+    .from("scooter_sales")
+    .select("scooter_id")
     .eq("id", id)
     .eq("tenant_id", tenantId)
     .single()
 
   const { error } = await supabase
-    .from("bike_sales")
+    .from("scooter_sales")
     .delete()
     .eq("id", id)
     .eq("tenant_id", tenantId)
 
   if (error) return { success: false, error: error.message }
 
-  if (sale?.bike_id) {
+  if (sale?.scooter_id) {
     await supabase
-      .from("bikes")
+      .from("scooters")
       .update({ status: "in_stock", sold_price: null })
-      .eq("id", sale.bike_id)
+      .eq("id", sale.scooter_id)
       .eq("tenant_id", tenantId)
   }
 

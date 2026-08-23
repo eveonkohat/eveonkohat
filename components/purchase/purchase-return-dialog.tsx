@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog"
 import { createPurchaseReturn } from "@/lib/actions/purchases"
 import { formatCurrency } from "@/lib/utils/format"
-import type { Bike } from "@/types/database"
+import type { Scooter } from "@/types/database"
 
 type FormState = { error?: string }
 
@@ -39,10 +39,10 @@ function SubmitButton() {
   )
 }
 
-export function PurchaseReturnDialog({ bikes }: { bikes: Bike[] }) {
+export function PurchaseReturnDialog({ scooters }: { scooters: Scooter[] }) {
   const [open, setOpen] = useState(false)
-  const [bikeId, setBikeId] = useState("")
-  const bike = bikes.find((b) => b.id === bikeId)
+  const [scooterId, setScooterId] = useState("")
+  const scooter = scooters.find((b) => b.id === scooterId)
   const today = new Date().toISOString().slice(0, 10)
 
   const [state, formAction] = useActionState<FormState, FormData>(async (_prev, formData) => {
@@ -50,7 +50,7 @@ export function PurchaseReturnDialog({ bikes }: { bikes: Bike[] }) {
     if (!result.success) return { error: result.error }
     toast.success("Purchase return posted")
     setOpen(false)
-    setBikeId("")
+    setScooterId("")
     return {}
   }, {})
 
@@ -65,19 +65,19 @@ export function PurchaseReturnDialog({ bikes }: { bikes: Bike[] }) {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Purchase Return</DialogTitle>
-          <DialogDescription>Return an unsold bike to its supplier.</DialogDescription>
+          <DialogDescription>Return an unsold scooter to its supplier.</DialogDescription>
         </DialogHeader>
 
         <form action={formAction} className="grid gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="bike_id">Select Bike from Stock</Label>
-              <Select name="bike_id" value={bikeId} onValueChange={setBikeId}>
-                <SelectTrigger id="bike_id" className="w-full">
-                  <SelectValue placeholder="Search available bikes…" />
+              <Label htmlFor="scooter_id">Select Scooter from Stock</Label>
+              <Select name="scooter_id" value={scooterId} onValueChange={setScooterId}>
+                <SelectTrigger id="scooter_id" className="w-full">
+                  <SelectValue placeholder="Search available scooters…" />
                 </SelectTrigger>
                 <SelectContent>
-                  {bikes.map((b) => (
+                  {scooters.map((b) => (
                     <SelectItem key={b.id} value={b.id}>
                       {b.make} {b.model} {b.color ? `— ${b.color}` : ""}
                     </SelectItem>
@@ -94,15 +94,15 @@ export function PurchaseReturnDialog({ bikes }: { bikes: Bike[] }) {
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
               <Label>Make</Label>
-              <Input value={bike?.make ?? ""} disabled placeholder="Auto-filled" />
+              <Input value={scooter?.make ?? ""} disabled placeholder="Auto-filled" />
             </div>
             <div className="space-y-2">
               <Label>Model</Label>
-              <Input value={bike?.model ?? ""} disabled placeholder="Auto-filled" />
+              <Input value={scooter?.model ?? ""} disabled placeholder="Auto-filled" />
             </div>
             <div className="space-y-2">
               <Label>Chassis Number</Label>
-              <Input value={bike?.chassis_no ?? ""} disabled placeholder="Auto-filled" />
+              <Input value={scooter?.chassis_no ?? ""} disabled placeholder="Auto-filled" />
             </div>
           </div>
 
@@ -110,7 +110,7 @@ export function PurchaseReturnDialog({ bikes }: { bikes: Bike[] }) {
             <div className="space-y-2">
               <Label>Original Purchase Price</Label>
               <div className="flex h-9 items-center rounded-md bg-muted px-3 text-sm">
-                {formatCurrency(bike?.purchase_price ?? 0)}
+                {formatCurrency(scooter?.purchase_price ?? 0)}
               </div>
             </div>
             <div className="space-y-2">
@@ -120,7 +120,7 @@ export function PurchaseReturnDialog({ bikes }: { bikes: Bike[] }) {
                 name="agreed_return_amount"
                 type="number"
                 step="0.01"
-                defaultValue={bike?.purchase_price ?? 0}
+                defaultValue={scooter?.purchase_price ?? 0}
               />
             </div>
           </div>

@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "EveonKohat Bike SaaS",
-    template: "%s | EveonKohat Bike SaaS",
+    default: "EveonKohat Scooter SaaS",
+    template: "%s | EveonKohat Scooter SaaS",
   },
   description:
-    "Manage your premium bike showroom inventory, sales, and installments with ease.",
+    "Manage your premium scooter showroom inventory, sales, and installments with ease.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

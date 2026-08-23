@@ -24,20 +24,20 @@ type PurchaseWithParty = Purchase & { party_name: string }
 type OtherItemWithParty = OtherItem & { party_name: string }
 
 export function PurchaseTables({
-  bikePurchases,
+  scooterPurchases,
   otherPurchases,
 }: {
-  bikePurchases: PurchaseWithParty[]
+  scooterPurchases: PurchaseWithParty[]
   otherPurchases: OtherItemWithParty[]
 }) {
   return (
-    <Tabs defaultValue="bike">
+    <Tabs defaultValue="scooter">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <TabsList>
-          <TabsTrigger value="bike">
+          <TabsTrigger value="scooter">
             <ShoppingBasket className="size-4" />
-            Bike Purchase
-            <span className="ml-1 rounded-full bg-muted px-1.5 text-xs">{bikePurchases.length}</span>
+            Scooter Purchase
+            <span className="ml-1 rounded-full bg-muted px-1.5 text-xs">{scooterPurchases.length}</span>
           </TabsTrigger>
           <TabsTrigger value="other">
             <Package className="size-4" />
@@ -48,13 +48,13 @@ export function PurchaseTables({
         <SearchInput placeholder="Search by supplier, make, model, chassis…" className="max-w-sm" />
       </div>
 
-      <TabsContent value="bike" className="mt-4">
+      <TabsContent value="scooter" className="mt-4">
         <Card className="overflow-hidden py-0">
-          {bikePurchases.length === 0 ? (
+          {scooterPurchases.length === 0 ? (
             <EmptyState
               icon={ShoppingBasket}
-              title="No bike purchases yet"
-              description="Add a bike purchase to bring stock into your inventory."
+              title="No scooter purchases yet"
+              description="Add a scooter purchase to bring stock into your inventory."
             />
           ) : (
             <div className="overflow-x-auto">
@@ -63,7 +63,7 @@ export function PurchaseTables({
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>Supplier</TableHead>
-                    <TableHead>Bike</TableHead>
+                    <TableHead>Scooter</TableHead>
                     <TableHead>Model</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Qty Purchased</TableHead>
@@ -73,7 +73,7 @@ export function PurchaseTables({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {bikePurchases.map((p) => (
+                  {scooterPurchases.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell>{formatDate(p.date)}</TableCell>
                       <TableCell>{p.party_name}</TableCell>
@@ -108,7 +108,7 @@ export function PurchaseTables({
                           />
                           <ConfirmDeleteButton
                             title="Delete this purchase record?"
-                            description="This removes the purchase order. Bike units already created stay in stock."
+                            description="This removes the purchase order. Scooter units already created stay in stock."
                             action={deletePurchase.bind(null, p.id)}
                           />
                         </div>

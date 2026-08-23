@@ -23,9 +23,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { createBikeSale } from "@/lib/actions/sales"
+import { createScooterSale } from "@/lib/actions/sales"
 import { formatCurrency } from "@/lib/utils/format"
-import type { Account, Bike } from "@/types/database"
+import type { Account, Scooter } from "@/types/database"
 
 type FormState = { error?: string }
 
@@ -39,21 +39,21 @@ function SubmitButton() {
   )
 }
 
-export function BikeSaleDialog({ bikes, accounts }: { bikes: Bike[]; accounts: Account[] }) {
+export function ScooterSaleDialog({ scooters, accounts }: { scooters: Scooter[]; accounts: Account[] }) {
   const [open, setOpen] = useState(false)
-  const [bikeId, setBikeId] = useState("")
+  const [scooterId, setScooterId] = useState("")
   const [total, setTotal] = useState(0)
   const [received, setReceived] = useState(0)
-  const bike = bikes.find((b) => b.id === bikeId)
+  const scooter = scooters.find((b) => b.id === scooterId)
   const today = new Date().toISOString().slice(0, 10)
   const balance = Math.max(total - received, 0)
 
   const [state, formAction] = useActionState<FormState, FormData>(async (_prev, formData) => {
-    const result = await createBikeSale(formData)
+    const result = await createScooterSale(formData)
     if (!result.success) return { error: result.error }
     toast.success("Sale recorded")
     setOpen(false)
-    setBikeId("")
+    setScooterId("")
     setTotal(0)
     setReceived(0)
     return {}
@@ -64,41 +64,41 @@ export function BikeSaleDialog({ bikes, accounts }: { bikes: Bike[]; accounts: A
       <DialogTrigger asChild>
         <Button>
           <ShoppingCart className="size-4" />
-          Bike Sale
+          Scooter Sale
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>New Bike Sale</DialogTitle>
-          <DialogDescription>Sell a bike from your current stock.</DialogDescription>
+          <DialogTitle>New Scooter Sale</DialogTitle>
+          <DialogDescription>Sell a scooter from your current stock.</DialogDescription>
         </DialogHeader>
 
         <form action={formAction} className="grid gap-4">
           <div className="space-y-2">
-            <Label htmlFor="bike_id">Select Bike</Label>
+            <Label htmlFor="scooter_id">Select Scooter</Label>
             <Select
-              name="bike_id"
-              value={bikeId}
+              name="scooter_id"
+              value={scooterId}
               onValueChange={(v) => {
-                setBikeId(v)
-                const selected = bikes.find((b) => b.id === v)
+                setScooterId(v)
+                const selected = scooters.find((b) => b.id === v)
                 if (selected) setTotal(Number(selected.purchase_price))
               }}
             >
-              <SelectTrigger id="bike_id" className="w-full">
-                <SelectValue placeholder="Search available bikes…" />
+              <SelectTrigger id="scooter_id" className="w-full">
+                <SelectValue placeholder="Search available scooters…" />
               </SelectTrigger>
               <SelectContent>
-                {bikes.map((b) => (
+                {scooters.map((b) => (
                   <SelectItem key={b.id} value={b.id}>
                     {b.make} {b.model} {b.color ? `— ${b.color}` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {bike ? (
+            {scooter ? (
               <p className="text-xs text-muted-foreground">
-                Chassis: {bike.chassis_no || "—"} · Motor: {bike.engine_no || "—"}
+                Chassis: {scooter.chassis_no || "—"} · Motor: {scooter.engine_no || "—"}
               </p>
             ) : null}
           </div>

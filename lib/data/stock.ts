@@ -1,13 +1,13 @@
 import "server-only"
 import { createClient } from "@/lib/supabase/server"
 
-export async function getBikes(
+export async function getScooters(
   tenantId: string,
   filters: { search?: string; status?: string; vehicleType?: string } = {}
 ) {
   const supabase = await createClient()
   let query = supabase
-    .from("bikes")
+    .from("scooters")
     .select("*")
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false })

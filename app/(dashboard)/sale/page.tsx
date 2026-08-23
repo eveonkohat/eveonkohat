@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
 import { getSessionContext } from "@/lib/data/session"
-import { getBikeSales, getPosSales, getSellableBikes } from "@/lib/data/sales"
+import { getScooterSales, getPosSales, getSellableScooters } from "@/lib/data/sales"
 import { getAccounts } from "@/lib/data/accounts"
 import { PageBanner } from "@/components/shared/page-banner"
 import { SaleTables } from "@/components/sale/sale-tables"
-import { BikeSaleDialog } from "@/components/sale/bike-sale-dialog"
+import { ScooterSaleDialog } from "@/components/sale/scooter-sale-dialog"
 import { PosSaleDialog } from "@/components/sale/pos-sale-dialog"
 
 export const metadata: Metadata = { title: "Sale" }
@@ -17,10 +17,10 @@ export default async function SalePage({
   const { search } = await searchParams
   const { tenant } = await getSessionContext()
 
-  const [bikeSales, posSales, sellableBikes, accounts] = await Promise.all([
-    getBikeSales(tenant.id, search),
+  const [scooterSales, posSales, sellableScooters, accounts] = await Promise.all([
+    getScooterSales(tenant.id, search),
     getPosSales(tenant.id, search),
-    getSellableBikes(tenant.id),
+    getSellableScooters(tenant.id),
     getAccounts(tenant.id),
   ])
 
@@ -32,12 +32,12 @@ export default async function SalePage({
         description="View and manage every cash sale order."
         action={
           <>
-            <BikeSaleDialog bikes={sellableBikes} accounts={accounts} />
+            <ScooterSaleDialog scooters={sellableScooters} accounts={accounts} />
             <PosSaleDialog accounts={accounts} />
           </>
         }
       />
-      <SaleTables bikeSales={bikeSales} posSales={posSales} />
+      <SaleTables scooterSales={scooterSales} posSales={posSales} />
     </div>
   )
 }

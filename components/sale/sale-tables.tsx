@@ -14,28 +14,28 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { ConfirmDeleteButton } from "@/components/shared/confirm-delete-button"
 import { SearchInput } from "@/components/shared/search-input"
 import { StatusBadge } from "@/components/shared/status-badge"
-import { deleteBikeSale, deletePosSale } from "@/lib/actions/sales"
+import { deleteScooterSale, deletePosSale } from "@/lib/actions/sales"
 import { formatCurrency, formatDate } from "@/lib/utils/format"
 import { ShoppingCart, Package } from "lucide-react"
-import type { Bike, BikeSale, PosSale } from "@/types/database"
+import type { Scooter, ScooterSale, PosSale } from "@/types/database"
 
-type BikeSaleWithBike = BikeSale & { bike?: Pick<Bike, "id" | "make" | "model" | "chassis_no" | "engine_no"> }
+type ScooterSaleWithScooter = ScooterSale & { scooter?: Pick<Scooter, "id" | "make" | "model" | "chassis_no" | "engine_no"> }
 
 export function SaleTables({
-  bikeSales,
+  scooterSales,
   posSales,
 }: {
-  bikeSales: BikeSaleWithBike[]
+  scooterSales: ScooterSaleWithScooter[]
   posSales: PosSale[]
 }) {
   return (
-    <Tabs defaultValue="bike">
+    <Tabs defaultValue="scooter">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <TabsList>
-          <TabsTrigger value="bike">
+          <TabsTrigger value="scooter">
             <ShoppingCart className="size-4" />
-            Bike Sale
-            <span className="ml-1 rounded-full bg-muted px-1.5 text-xs">{bikeSales.length}</span>
+            Scooter Sale
+            <span className="ml-1 rounded-full bg-muted px-1.5 text-xs">{scooterSales.length}</span>
           </TabsTrigger>
           <TabsTrigger value="pos">
             <Package className="size-4" />
@@ -46,10 +46,10 @@ export function SaleTables({
         <SearchInput placeholder="Search customer, CNIC, phone or item…" className="max-w-sm" />
       </div>
 
-      <TabsContent value="bike" className="mt-4">
+      <TabsContent value="scooter" className="mt-4">
         <Card className="overflow-hidden py-0">
-          {bikeSales.length === 0 ? (
-            <EmptyState icon={ShoppingCart} title="No bike sales yet" description="Sold bikes will show up here." />
+          {scooterSales.length === 0 ? (
+            <EmptyState icon={ShoppingCart} title="No scooter sales yet" description="Sold scooters will show up here." />
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -66,7 +66,7 @@ export function SaleTables({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {bikeSales.map((sale) => (
+                  {scooterSales.map((sale) => (
                     <TableRow key={sale.id}>
                       <TableCell>
                         {formatDate(sale.date)}
@@ -80,10 +80,10 @@ export function SaleTables({
                       </TableCell>
                       <TableCell>
                         <p className="font-medium">
-                          {sale.bike ? `${sale.bike.make} ${sale.bike.model}` : "—"}
+                          {sale.scooter ? `${sale.scooter.make} ${sale.scooter.model}` : "—"}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Chassis: {sale.bike?.chassis_no || "—"} · Motor: {sale.bike?.engine_no || "—"}
+                          Chassis: {sale.scooter?.chassis_no || "—"} · Motor: {sale.scooter?.engine_no || "—"}
                         </p>
                       </TableCell>
                       <TableCell className="text-right font-semibold">{formatCurrency(sale.total_amount)}</TableCell>
@@ -96,8 +96,8 @@ export function SaleTables({
                         <div className="flex justify-end gap-2">
                           <ConfirmDeleteButton
                             title="Delete this sale?"
-                            description="The bike will be returned to available stock."
-                            action={deleteBikeSale.bind(null, sale.id)}
+                            description="The scooter will be returned to available stock."
+                            action={deleteScooterSale.bind(null, sale.id)}
                           />
                         </div>
                       </TableCell>

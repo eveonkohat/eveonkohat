@@ -104,7 +104,7 @@ type PurchaseRow = {
   created_at: string
 }
 
-type BikeRow = {
+type ScooterRow = {
   id: string
   tenant_id: string
   purchase_id: string | null
@@ -125,7 +125,7 @@ type BikeRow = {
 type PurchaseReturnRow = {
   id: string
   tenant_id: string
-  bike_id: string
+  scooter_id: string
   return_date: string
   agreed_return_amount: number
   notes: string | null
@@ -149,11 +149,11 @@ type OtherItemRow = {
   created_at: string
 }
 
-type BikeSaleRow = {
+type ScooterSaleRow = {
   id: string
   tenant_id: string
   order_code: string
-  bike_id: string | null
+  scooter_id: string | null
   customer_name: string
   customer_cnic: string | null
   customer_phone: string | null
@@ -215,7 +215,7 @@ type InstallmentSaleRow = {
   tenant_id: string
   order_code: string
   customer_id: string
-  bike_id: string | null
+  scooter_id: string | null
   item_description: string | null
   sale_date: string
   total_amount: number
@@ -279,10 +279,10 @@ export type Database = {
       accounts: TableDef<AccountRow>
       account_transactions: TableDef<AccountTransactionRow>
       purchases: TableDef<PurchaseRow>
-      bikes: TableDef<BikeRow>
+      scooters: TableDef<ScooterRow>
       purchase_returns: TableDef<PurchaseReturnRow>
       other_items: TableDef<OtherItemRow>
-      bike_sales: TableDef<BikeSaleRow>
+      scooter_sales: TableDef<ScooterSaleRow>
       pos_sales: TableDef<PosSaleRow>
       installment_customers: TableDef<InstallmentCustomerRow>
       installment_sales: TableDef<InstallmentSaleRow>
@@ -350,10 +350,10 @@ export type Party = PartyRow
 export type Account = AccountRow
 export type AccountTransaction = AccountTransactionRow
 export type Purchase = PurchaseRow
-export type Bike = BikeRow
+export type Scooter = ScooterRow
 export type PurchaseReturn = PurchaseReturnRow
 export type OtherItem = OtherItemRow
-export type BikeSale = BikeSaleRow
+export type ScooterSale = ScooterSaleRow
 export type PosSale = PosSaleRow
 export type InstallmentCustomer = InstallmentCustomerRow
 export type InstallmentSale = InstallmentSaleRow

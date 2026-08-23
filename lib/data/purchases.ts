@@ -55,10 +55,10 @@ export async function getOtherPurchases(tenantId: string, search?: string) {
   }))
 }
 
-export async function getAvailableBikesForReturn(tenantId: string) {
+export async function getAvailableScootersForReturn(tenantId: string) {
   const supabase = await createClient()
   const { data } = await supabase
-    .from("bikes")
+    .from("scooters")
     .select("*")
     .eq("tenant_id", tenantId)
     .eq("status", "in_stock")

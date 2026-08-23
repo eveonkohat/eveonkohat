@@ -61,7 +61,7 @@ export async function deleteInstallmentCustomer(id: string): Promise<ActionResul
 export async function createInstallmentSale(formData: FormData): Promise<ActionResult> {
   const parsed = installmentSaleSchema.safeParse({
     customer_id: fd(formData, "customer_id"),
-    bike_id: fd(formData, "bike_id"),
+    scooter_id: fd(formData, "scooter_id"),
     item_description: fd(formData, "item_description"),
     sale_date: fd(formData, "sale_date"),
     total_amount: fd(formData, "total_amount"),
@@ -82,20 +82,20 @@ export async function createInstallmentSale(formData: FormData): Promise<ActionR
   const status = balance === 0 ? "completed" : "active"
 
   let itemDescription = d.item_description ?? null
-  if (d.bike_id) {
-    const { data: bike } = await supabase
-      .from("bikes")
+  if (d.scooter_id) {
+    const { data: scooter } = await supabase
+      .from("scooters")
       .select("make, model")
-      .eq("id", d.bike_id)
+      .eq("id", d.scooter_id)
       .eq("tenant_id", tenantId)
       .single()
-    if (bike) itemDescription = `${bike.make} ${bike.model}`
+    if (scooter) itemDescription = `${scooter.make} ${scooter.model}`
   }
 
   const { error } = await supabase.from("installment_sales").insert({
     tenant_id: tenantId,
     customer_id: d.customer_id,
-    bike_id: d.bike_id || null,
+    scooter_id: d.scooter_id || null,
     item_description: itemDescription,
     sale_date: d.sale_date,
     total_amount: d.total_amount,
@@ -109,11 +109,11 @@ export async function createInstallmentSale(formData: FormData): Promise<ActionR
 
   if (error) return { success: false, error: error.message }
 
-  if (d.bike_id) {
+  if (d.scooter_id) {
     await supabase
-      .from("bikes")
+      .from("scooters")
       .update({ status: "sold", sold_price: d.total_amount })
-      .eq("id", d.bike_id)
+      .eq("id", d.scooter_id)
       .eq("tenant_id", tenantId)
   }
 
@@ -128,7 +128,7 @@ export async function deleteInstallmentSale(id: string): Promise<ActionResult> {
 
   const { data: sale } = await supabase
     .from("installment_sales")
-    .select("bike_id")
+    .select("scooter_id")
     .eq("id", id)
     .eq("tenant_id", tenantId)
     .single()
@@ -141,11 +141,11 @@ export async function deleteInstallmentSale(id: string): Promise<ActionResult> {
 
   if (error) return { success: false, error: error.message }
 
-  if (sale?.bike_id) {
+  if (sale?.scooter_id) {
     await supabase
-      .from("bikes")
+      .from("scooters")
       .update({ status: "in_stock", sold_price: null })
-      .eq("id", sale.bike_id)
+      .eq("id", sale.scooter_id)
       .eq("tenant_id", tenantId)
   }
 

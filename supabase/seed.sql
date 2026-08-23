@@ -23,14 +23,14 @@ declare
   purchase_s1_id uuid;
   purchase_omigo_id uuid;
   purchase_nisa_id uuid;
-  bike_s1_1 uuid;
-  bike_s1_2 uuid;
-  bike_s1_3 uuid;
-  bike_omigo_1 uuid;
-  bike_omigo_2 uuid;
-  bike_omigo_3 uuid;
-  bike_nisa_1 uuid;
-  bike_nisa_2 uuid;
+  scooter_s1_1 uuid;
+  scooter_s1_2 uuid;
+  scooter_s1_3 uuid;
+  scooter_omigo_1 uuid;
+  scooter_omigo_2 uuid;
+  scooter_omigo_3 uuid;
+  scooter_nisa_1 uuid;
+  scooter_nisa_2 uuid;
   customer_awais_id uuid;
   customer_sajid_id uuid;
   installment_sale_id uuid;
@@ -52,9 +52,9 @@ begin
   delete from public.installment_terms where tenant_id = demo_tenant_id;
   delete from public.expenses where tenant_id = demo_tenant_id;
   delete from public.pos_sales where tenant_id = demo_tenant_id;
-  delete from public.bike_sales where tenant_id = demo_tenant_id;
+  delete from public.scooter_sales where tenant_id = demo_tenant_id;
   delete from public.purchase_returns where tenant_id = demo_tenant_id;
-  delete from public.bikes where tenant_id = demo_tenant_id;
+  delete from public.scooters where tenant_id = demo_tenant_id;
   delete from public.other_items where tenant_id = demo_tenant_id;
   delete from public.purchases where tenant_id = demo_tenant_id;
   delete from public.account_transactions where tenant_id = demo_tenant_id;
@@ -67,7 +67,7 @@ begin
       phone = '0335-4582969',
       address = 'Khawaja Safdar Road near Dar ul Shifa Hospital, CSD Chowk, Sialkot Cantt',
       plan_type = 'Standard',
-      showroom_type = 'Electric Bikes',
+      showroom_type = 'Electric Scooters',
       status = 'Active',
       max_users = 5,
       max_vehicles = 500
@@ -87,7 +87,7 @@ begin
   values (demo_tenant_id, 'Evee Motors Distribution', 'Fazal Shaikh', '0300-1234567', 'Lahore', 0, 0)
   returning id into party_supplier_id;
 
-  -- Purchases + bikes --------------------------------------------------------
+  -- Purchases + scooters --------------------------------------------------------
   insert into public.purchases (tenant_id, party_id, date, vehicle_type, make, model, color, year, purchase_price, quantity, total_amount, paid_amount, balance, status)
   values (demo_tenant_id, party_supplier_id, '2026-08-21', 'Electric', 'Evee', 'S1', 'Red', 2026, 206000, 3, 618000, 618000, 0, 'in-stock')
   returning id into purchase_s1_id;
@@ -100,25 +100,25 @@ begin
   values (demo_tenant_id, party_supplier_id, '2026-08-23', 'Electric', 'Evee', 'Nisa', 'White', 2026, 145001, 2, 290002, 290002, 0, 'in-stock')
   returning id into purchase_nisa_id;
 
-  insert into public.bikes (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
+  insert into public.scooters (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
   values
-    (demo_tenant_id, purchase_s1_id, 'Evee', 'S1', 2026, 'Red', 'Electric', 206000, 'sold') returning id into bike_s1_1;
-  insert into public.bikes (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
-  values (demo_tenant_id, purchase_s1_id, 'Evee', 'S1', 2026, 'Red', 'Electric', 206000, 'sold') returning id into bike_s1_2;
-  insert into public.bikes (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
-  values (demo_tenant_id, purchase_s1_id, 'Evee', 'S1', 2026, 'Red', 'Electric', 206000, 'in_stock') returning id into bike_s1_3;
+    (demo_tenant_id, purchase_s1_id, 'Evee', 'S1', 2026, 'Red', 'Electric', 206000, 'sold') returning id into scooter_s1_1;
+  insert into public.scooters (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
+  values (demo_tenant_id, purchase_s1_id, 'Evee', 'S1', 2026, 'Red', 'Electric', 206000, 'sold') returning id into scooter_s1_2;
+  insert into public.scooters (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
+  values (demo_tenant_id, purchase_s1_id, 'Evee', 'S1', 2026, 'Red', 'Electric', 206000, 'in_stock') returning id into scooter_s1_3;
 
-  insert into public.bikes (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
-  values (demo_tenant_id, purchase_omigo_id, 'OKLA', 'OMIGO', 2026, 'Black', 'Electric', 230000, 'sold') returning id into bike_omigo_1;
-  insert into public.bikes (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
-  values (demo_tenant_id, purchase_omigo_id, 'OKLA', 'OMIGO', 2026, 'Black', 'Electric', 230000, 'in_stock') returning id into bike_omigo_2;
-  insert into public.bikes (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
-  values (demo_tenant_id, purchase_omigo_id, 'OKLA', 'OMIGO', 2026, 'Black', 'Electric', 230000, 'in_stock') returning id into bike_omigo_3;
+  insert into public.scooters (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
+  values (demo_tenant_id, purchase_omigo_id, 'OKLA', 'OMIGO', 2026, 'Black', 'Electric', 230000, 'sold') returning id into scooter_omigo_1;
+  insert into public.scooters (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
+  values (demo_tenant_id, purchase_omigo_id, 'OKLA', 'OMIGO', 2026, 'Black', 'Electric', 230000, 'in_stock') returning id into scooter_omigo_2;
+  insert into public.scooters (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
+  values (demo_tenant_id, purchase_omigo_id, 'OKLA', 'OMIGO', 2026, 'Black', 'Electric', 230000, 'in_stock') returning id into scooter_omigo_3;
 
-  insert into public.bikes (tenant_id, purchase_id, make, model, year, color, vehicle_type, chassis_no, engine_no, purchase_price, status)
-  values (demo_tenant_id, purchase_nisa_id, 'Evee', 'Nisa', 2026, 'White', 'Electric', 'GH12345678910', 'AS12345678911', 145001, 'sold') returning id into bike_nisa_1;
-  insert into public.bikes (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
-  values (demo_tenant_id, purchase_nisa_id, 'Evee', 'Nisa', 2026, 'White', 'Electric', 145001, 'in_stock') returning id into bike_nisa_2;
+  insert into public.scooters (tenant_id, purchase_id, make, model, year, color, vehicle_type, chassis_no, engine_no, purchase_price, status)
+  values (demo_tenant_id, purchase_nisa_id, 'Evee', 'Nisa', 2026, 'White', 'Electric', 'GH12345678910', 'AS12345678911', 145001, 'sold') returning id into scooter_nisa_1;
+  insert into public.scooters (tenant_id, purchase_id, make, model, year, color, vehicle_type, purchase_price, status)
+  values (demo_tenant_id, purchase_nisa_id, 'Evee', 'Nisa', 2026, 'White', 'Electric', 145001, 'in_stock') returning id into scooter_nisa_2;
 
   -- Other stock items ----------------------------------------------------
   insert into public.other_items (tenant_id, date, item_name, quantity, quantity_remaining, unit_price, total_amount, paid_amount, balance, payment_account_id, description)
@@ -126,12 +126,12 @@ begin
     (demo_tenant_id, '2026-08-18', 'CULTUS 2020', 1, 1, 2780000, 2780000, 2780000, 0, cash_account_id, 'Purchase from Fazal Shaikh c/o Zubair Memon'),
     (demo_tenant_id, '2026-08-18', 'GLI 2018 (BMM-435)', 1, 1, 3600000, 3600000, 2000000, 1600000, cash_account_id, 'From Parvez Korai and Zubair Memon');
 
-  -- Bike sales -------------------------------------------------------------
-  insert into public.bike_sales (tenant_id, bike_id, customer_name, customer_cnic, customer_phone, date, total_amount, received_amount, balance, payment_status, payment_account_id)
-  values (demo_tenant_id, bike_nisa_1, 'SAEED', '2164616546', '212065165120', '2026-08-23', 159000, 159000, 0, 'received', cash_account_id);
+  -- Scooter sales -------------------------------------------------------------
+  insert into public.scooter_sales (tenant_id, scooter_id, customer_name, customer_cnic, customer_phone, date, total_amount, received_amount, balance, payment_status, payment_account_id)
+  values (demo_tenant_id, scooter_nisa_1, 'SAEED', '2164616546', '212065165120', '2026-08-23', 159000, 159000, 0, 'received', cash_account_id);
 
-  insert into public.bike_sales (tenant_id, bike_id, customer_name, customer_cnic, customer_phone, date, total_amount, received_amount, balance, payment_status)
-  values (demo_tenant_id, bike_s1_1, 'Asim haroon', '1430122918819', '03339510061', '2026-08-22', 216000, 0, 216000, 'partial');
+  insert into public.scooter_sales (tenant_id, scooter_id, customer_name, customer_cnic, customer_phone, date, total_amount, received_amount, balance, payment_status)
+  values (demo_tenant_id, scooter_s1_1, 'Asim haroon', '1430122918819', '03339510061', '2026-08-22', 216000, 0, 216000, 'partial');
 
   -- Installments -------------------------------------------------------------
   insert into public.installment_customers (tenant_id, name, father_name, cnic, phone, registration_date)
@@ -145,15 +145,15 @@ begin
   values (demo_tenant_id, 'Muhammad Sajid Ali', 'Shabbir Ahmad', '3230323471011', '03336005623', '2026-07-01')
   returning id into customer_sajid_id;
 
-  insert into public.installment_sales (tenant_id, customer_id, bike_id, item_description, sale_date, total_amount, down_payment, term_months, per_installment, paid_amount, balance, status)
-  values (demo_tenant_id, customer_awais_id, bike_s1_2, 'Evee S1', '2026-08-23', 216000, 50000, 12, 13833, 216000, 0, 'completed')
+  insert into public.installment_sales (tenant_id, customer_id, scooter_id, item_description, sale_date, total_amount, down_payment, term_months, per_installment, paid_amount, balance, status)
+  values (demo_tenant_id, customer_awais_id, scooter_s1_2, 'Evee S1', '2026-08-23', 216000, 50000, 12, 13833, 216000, 0, 'completed')
   returning id into installment_sale_id;
 
   insert into public.installment_payments (tenant_id, installment_sale_id, payment_date, amount, account_id, notes)
   values (demo_tenant_id, installment_sale_id, '2026-08-24', 216000, cash_account_id, 'Full settlement');
 
-  insert into public.installment_sales (tenant_id, customer_id, bike_id, item_description, sale_date, total_amount, down_payment, term_months, per_installment, paid_amount, balance, status)
-  values (demo_tenant_id, customer_sajid_id, bike_omigo_1, 'OKLA OMIGO', '2026-08-22', 240000, 0, 6, 40000, 105000, 135000, 'active')
+  insert into public.installment_sales (tenant_id, customer_id, scooter_id, item_description, sale_date, total_amount, down_payment, term_months, per_installment, paid_amount, balance, status)
+  values (demo_tenant_id, customer_sajid_id, scooter_omigo_1, 'OKLA OMIGO', '2026-08-22', 240000, 0, 6, 40000, 105000, 135000, 'active')
   returning id into installment_sale_id;
 
   insert into public.installment_payments (tenant_id, installment_sale_id, payment_date, amount, account_id, notes)

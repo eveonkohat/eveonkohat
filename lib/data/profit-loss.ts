@@ -14,10 +14,10 @@ export async function getProfitAndLoss(tenantId: string, year: number, month?: n
   const supabase = await createClient()
   const { start, end } = monthRange(year, month)
 
-  const [bikeSalesRes, posSalesRes, purchasesRes, otherPurchasesRes, expensesRes, otherIncomeRes, openingStockRes] =
+  const [scooterSalesRes, posSalesRes, purchasesRes, otherPurchasesRes, expensesRes, otherIncomeRes, openingStockRes] =
     await Promise.all([
       supabase
-        .from("bike_sales")
+        .from("scooter_sales")
         .select("total_amount")
         .eq("tenant_id", tenantId)
         .gte("date", start)
@@ -54,7 +54,7 @@ export async function getProfitAndLoss(tenantId: string, year: number, month?: n
         .gte("date", start)
         .lte("date", end),
       supabase
-        .from("bikes")
+        .from("scooters")
         .select("purchase_price")
         .eq("tenant_id", tenantId)
         .eq("status", "in_stock")
@@ -62,7 +62,7 @@ export async function getProfitAndLoss(tenantId: string, year: number, month?: n
     ])
 
   const salesRevenue =
-    (bikeSalesRes.data ?? []).reduce((sum, s) => sum + Number(s.total_amount), 0) +
+    (scooterSalesRes.data ?? []).reduce((sum, s) => sum + Number(s.total_amount), 0) +
     (posSalesRes.data ?? []).reduce((sum, s) => sum + Number(s.grand_total), 0)
 
   const otherIncome = (otherIncomeRes.data ?? []).reduce((sum, i) => sum + Number(i.amount), 0)
@@ -74,8 +74,8 @@ export async function getProfitAndLoss(tenantId: string, year: number, month?: n
 
   const openingStock = (openingStockRes.data ?? []).reduce((sum, b) => sum + Number(b.purchase_price), 0)
 
-  const { data: closingStockBikes } = await supabase
-    .from("bikes")
+  const { data: closingStockScooters } = await supabase
+    .from("scooters")
     .select("purchase_price")
     .eq("tenant_id", tenantId)
     .eq("status", "in_stock")
@@ -87,7 +87,7 @@ export async function getProfitAndLoss(tenantId: string, year: number, month?: n
     .lte("date", end)
 
   const closingStock =
-    (closingStockBikes ?? []).reduce((sum, b) => sum + Number(b.purchase_price), 0) +
+    (closingStockScooters ?? []).reduce((sum, b) => sum + Number(b.purchase_price), 0) +
     (closingStockOther ?? []).reduce((sum, i) => sum + Number(i.unit_price) * i.quantity_remaining, 0)
 
   const cogs = Math.max(openingStock + purchasesTotal - closingStock, 0)

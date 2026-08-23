@@ -27,9 +27,9 @@ export async function getDashboardData(tenantId: string) {
   const yearStart = new Date(now.getFullYear(), 0, 1)
 
   const [
-    bikesRes,
+    scootersRes,
     otherItemsRes,
-    bikeSalesRes,
+    scooterSalesRes,
     posSalesRes,
     purchasesRes,
     purchaseOtherRes,
@@ -39,7 +39,7 @@ export async function getDashboardData(tenantId: string) {
     partiesRes,
   ] = await Promise.all([
     supabase
-      .from("bikes")
+      .from("scooters")
       .select("id, model, make, status, purchase_price, created_at")
       .eq("tenant_id", tenantId),
     supabase
@@ -47,8 +47,8 @@ export async function getDashboardData(tenantId: string) {
       .select("id, item_name, quantity_remaining, unit_price")
       .eq("tenant_id", tenantId),
     supabase
-      .from("bike_sales")
-      .select("id, bike_id, total_amount, date")
+      .from("scooter_sales")
+      .select("id, scooter_id, total_amount, date")
       .eq("tenant_id", tenantId)
       .gte("date", yearStart.toISOString().slice(0, 10)),
     supabase
@@ -79,9 +79,9 @@ export async function getDashboardData(tenantId: string) {
     supabase.from("purchases").select("balance").eq("tenant_id", tenantId),
   ])
 
-  const bikes = bikesRes.data ?? []
+  const scooters = scootersRes.data ?? []
   const otherItems = otherItemsRes.data ?? []
-  const bikeSales = bikeSalesRes.data ?? []
+  const scooterSales = scooterSalesRes.data ?? []
   const posSales = posSalesRes.data ?? []
   const accounts = accountsRes.data ?? []
   const installmentSales = installmentSalesRes.data ?? []
@@ -91,7 +91,7 @@ export async function getDashboardData(tenantId: string) {
   const thisMonthKey = monthStart.toISOString().slice(0, 7)
 
   const salesThisMonth =
-    bikeSales
+    scooterSales
       .filter((s) => monthKey(s.date) === thisMonthKey)
       .reduce((sum, s) => sum + Number(s.total_amount), 0) +
     posSales
@@ -102,9 +102,9 @@ export async function getDashboardData(tenantId: string) {
     (purchasesRes.data ?? []).reduce((sum, p) => sum + Number(p.total_amount), 0) +
     (purchaseOtherRes.data ?? []).reduce((sum, p) => sum + Number(p.total_amount), 0)
 
-  const totalInventory = bikes.filter((b) => b.status === "in_stock").length
+  const totalInventory = scooters.filter((b) => b.status === "in_stock").length
   const stockValue =
-    bikes
+    scooters
       .filter((b) => b.status === "in_stock")
       .reduce((sum, b) => sum + Number(b.purchase_price), 0) +
     otherItems.reduce((sum, i) => sum + Number(i.unit_price) * i.quantity_remaining, 0)
@@ -129,7 +129,7 @@ export async function getDashboardData(tenantId: string) {
     dayStart.setDate(dayStart.getDate() + i)
     const key = dayStart.toISOString().slice(0, 10)
     const amount =
-      bikeSales.filter((s) => s.date === key).reduce((sum, s) => sum + Number(s.total_amount), 0) +
+      scooterSales.filter((s) => s.date === key).reduce((sum, s) => sum + Number(s.total_amount), 0) +
       posSales.filter((s) => s.date === key).reduce((sum, s) => sum + Number(s.grand_total), 0)
     return { label: day, value: amount }
   })
@@ -138,15 +138,15 @@ export async function getDashboardData(tenantId: string) {
   const salesMonthly = MONTHS.map((label, i) => {
     const key = `${now.getFullYear()}-${String(i + 1).padStart(2, "0")}`
     const amount =
-      bikeSales.filter((s) => monthKey(s.date) === key).reduce((sum, s) => sum + Number(s.total_amount), 0) +
+      scooterSales.filter((s) => monthKey(s.date) === key).reduce((sum, s) => sum + Number(s.total_amount), 0) +
       posSales.filter((s) => monthKey(s.date) === key).reduce((sum, s) => sum + Number(s.grand_total), 0)
     return { label, value: amount }
   })
 
-  const bikeCostById = new Map(bikes.map((b) => [b.id, Number(b.purchase_price)]))
+  const scooterCostById = new Map(scooters.map((b) => [b.id, Number(b.purchase_price)]))
 
-  const profitOf = (s: { bike_id: string | null; total_amount: number }) => {
-    const cost = s.bike_id ? (bikeCostById.get(s.bike_id) ?? 0) : 0
+  const profitOf = (s: { scooter_id: string | null; total_amount: number }) => {
+    const cost = s.scooter_id ? (scooterCostById.get(s.scooter_id) ?? 0) : 0
     return Number(s.total_amount) - cost
   }
 
@@ -154,7 +154,7 @@ export async function getDashboardData(tenantId: string) {
     const dayStart = new Date(weekStart)
     dayStart.setDate(dayStart.getDate() + i)
     const key = dayStart.toISOString().slice(0, 10)
-    const value = bikeSales
+    const value = scooterSales
       .filter((s) => s.date === key)
       .reduce((sum, s) => sum + profitOf(s), 0)
     return { label: day, value }
@@ -162,15 +162,15 @@ export async function getDashboardData(tenantId: string) {
 
   const profitMonthly = MONTHS.map((label, i) => {
     const key = `${now.getFullYear()}-${String(i + 1).padStart(2, "0")}`
-    const value = bikeSales
+    const value = scooterSales
       .filter((s) => monthKey(s.date) === key)
       .reduce((sum, s) => sum + profitOf(s), 0)
     return { label, value }
   })
 
-  // Low stock: bikes grouped by model with <=2 units in_stock
+  // Low stock: scooters grouped by model with <=2 units in_stock
   const stockByModel = new Map<string, number>()
-  for (const b of bikes) {
+  for (const b of scooters) {
     if (b.status !== "in_stock") continue
     const key = `${b.make} ${b.model}`
     stockByModel.set(key, (stockByModel.get(key) ?? 0) + 1)
@@ -180,9 +180,9 @@ export async function getDashboardData(tenantId: string) {
     .sort((a, b) => a[1] - b[1])
     .map(([model, count]) => ({ model, count }))
 
-  // Top selling: bikes grouped by model, sold count
+  // Top selling: scooters grouped by model, sold count
   const soldByModel = new Map<string, number>()
-  for (const b of bikes) {
+  for (const b of scooters) {
     if (b.status !== "sold") continue
     const key = `${b.make} ${b.model}`
     soldByModel.set(key, (soldByModel.get(key) ?? 0) + 1)

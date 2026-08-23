@@ -1,9 +1,9 @@
 import { z } from "zod"
 
-export const bikePurchaseSchema = z.object({
+export const scooterPurchaseSchema = z.object({
   vehicle_type: z.string().min(1).default("Electric"),
   make: z.string().min(1, "Company (make) is required"),
-  model: z.string().min(1, "Bike model is required"),
+  model: z.string().min(1, "Scooter model is required"),
   color: z.string().optional(),
   year: z.coerce.number().int().optional(),
   date: z.string().min(1),
@@ -28,12 +28,12 @@ export const otherPurchaseSchema = z.object({
 })
 
 export const purchaseReturnSchema = z.object({
-  bike_id: z.string().min(1, "Select a bike to return"),
+  scooter_id: z.string().min(1, "Select a scooter to return"),
   return_date: z.string().min(1),
   agreed_return_amount: z.coerce.number().min(0).default(0),
   notes: z.string().optional(),
 })
 
-export type BikePurchaseInput = z.infer<typeof bikePurchaseSchema>
+export type ScooterPurchaseInput = z.infer<typeof scooterPurchaseSchema>
 export type OtherPurchaseInput = z.infer<typeof otherPurchaseSchema>
 export type PurchaseReturnInput = z.infer<typeof purchaseReturnSchema>

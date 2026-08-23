@@ -23,7 +23,7 @@ import { TermsPanel } from "./terms-panel"
 import { deleteInstallmentCustomer, deleteInstallmentSale } from "@/lib/actions/installments"
 import { formatCurrency, formatDate } from "@/lib/utils/format"
 import { Users as UsersIcon, Wallet, CheckCircle2, AlertCircle } from "lucide-react"
-import type { Account, Bike, InstallmentCustomer, InstallmentSale, InstallmentTerm } from "@/types/database"
+import type { Account, Scooter, InstallmentCustomer, InstallmentSale, InstallmentTerm } from "@/types/database"
 
 type CustomerWithBalance = InstallmentCustomer & { balance_amount: number; purchase_count: number }
 type SaleWithCustomer = InstallmentSale & {
@@ -36,7 +36,7 @@ export function InstallmentsTabs({
   sales,
   terms,
   accounts,
-  bikes,
+  scooters,
 }: {
   stats: {
     customerCount: number
@@ -50,7 +50,7 @@ export function InstallmentsTabs({
   sales: SaleWithCustomer[]
   terms: InstallmentTerm[]
   accounts: Account[]
-  bikes: Bike[]
+  scooters: Scooter[]
 }) {
   return (
     <Tabs defaultValue="dashboard">
@@ -163,7 +163,7 @@ export function InstallmentsTabs({
       <TabsContent value="sale-order" className="mt-4 space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <SearchInput placeholder="Search customer, CNIC, phone, item…" className="max-w-md" />
-          <InstallmentSaleDialog customers={customers} bikes={bikes} />
+          <InstallmentSaleDialog customers={customers} scooters={scooters} />
         </div>
         <SalesTable sales={sales} accounts={accounts} showActions="delete" />
       </TabsContent>
@@ -231,7 +231,7 @@ function SalesTable({
                       {showActions === "delete" ? (
                         <ConfirmDeleteButton
                           title="Delete this installment sale?"
-                          description="Any linked bike will be returned to available stock."
+                          description="Any linked scooter will be returned to available stock."
                           action={deleteInstallmentSale.bind(null, sale.id)}
                         />
                       ) : null}

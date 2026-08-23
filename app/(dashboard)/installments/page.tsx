@@ -7,7 +7,7 @@ import {
   getInstallmentDashboardStats,
 } from "@/lib/data/installments"
 import { getAccounts } from "@/lib/data/accounts"
-import { getSellableBikes } from "@/lib/data/sales"
+import { getSellableScooters } from "@/lib/data/sales"
 import { PageHeader } from "@/components/shared/page-header"
 import { InstallmentsTabs } from "@/components/installments/installments-tabs"
 
@@ -21,13 +21,13 @@ export default async function InstallmentsPage({
   const { search } = await searchParams
   const { tenant } = await getSessionContext()
 
-  const [stats, customers, sales, terms, accounts, bikes] = await Promise.all([
+  const [stats, customers, sales, terms, accounts, scooters] = await Promise.all([
     getInstallmentDashboardStats(tenant.id),
     getInstallmentCustomers(tenant.id, search),
     getInstallmentSales(tenant.id, search),
     getInstallmentTerms(tenant.id),
     getAccounts(tenant.id),
-    getSellableBikes(tenant.id),
+    getSellableScooters(tenant.id),
   ])
 
   return (
@@ -42,7 +42,7 @@ export default async function InstallmentsPage({
         sales={sales}
         terms={terms}
         accounts={accounts}
-        bikes={bikes}
+        scooters={scooters}
       />
     </div>
   )

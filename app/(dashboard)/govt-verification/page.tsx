@@ -17,7 +17,7 @@ export default function GovtVerificationPage() {
     <div>
       <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Government Verification Portals</h1>
       <p className="mt-1 text-sm font-medium text-primary">
-        Verify bike registration, ownership, and check e-challans directly from official government sites.
+        Verify scooter registration, ownership, and check e-challans directly from official government sites.
       </p>
 
       <Tabs defaultValue="Punjab" className="mt-6">
@@ -37,12 +37,12 @@ export default function GovtVerificationPage() {
                   <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <ShieldCheck className="size-5" />
                   </div>
-                  <CardTitle className="mt-2">Bike Verification</CardTitle>
+                  <CardTitle className="mt-2">Scooter Verification</CardTitle>
                   <p className="text-sm text-muted-foreground">Excise &amp; Taxation Department, {province}</p>
                 </CardHeader>
                 <CardContent>
                   <p className="mb-4 text-sm text-muted-foreground">
-                    Check online verification of the bike to confirm its make, model, chassis number,
+                    Check online verification of the scooter to confirm its make, model, chassis number,
                     engine number, and current owner details to prevent frauds.
                   </p>
                   <Button asChild className="w-full">
@@ -69,7 +69,7 @@ export default function GovtVerificationPage() {
                 <CardContent>
                   <p className="mb-4 text-sm text-muted-foreground">
                     Before purchasing or exchanging, make sure to check if there are any unpaid traffic
-                    tickets or e-challans issued against the bike&apos;s registration number.
+                    tickets or e-challans issued against the scooter&apos;s registration number.
                   </p>
                   <Button asChild variant="destructive" className="w-full">
                     <a

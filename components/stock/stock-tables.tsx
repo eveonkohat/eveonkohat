@@ -22,16 +22,16 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { SearchInput } from "@/components/shared/search-input"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { formatCurrency, formatDate } from "@/lib/utils/format"
-import { Bike as BikeIcon, Package, Layers } from "lucide-react"
-import type { Bike, OtherItem } from "@/types/database"
+import { Scooter as ScooterIcon, Package, Layers } from "lucide-react"
+import type { Scooter, OtherItem } from "@/types/database"
 
 export function StockTables({
-  bikes,
+  scooters,
   otherItems,
   status,
   vehicleType,
 }: {
-  bikes: Bike[]
+  scooters: Scooter[]
   otherItems: OtherItem[]
   status: string
   vehicleType: string
@@ -51,13 +51,13 @@ export function StockTables({
   }
 
   return (
-    <Tabs defaultValue="bikes">
+    <Tabs defaultValue="scooters">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <TabsList>
-          <TabsTrigger value="bikes">
-            <BikeIcon className="size-4" />
-            Bikes
-            <span className="ml-1 rounded-full bg-muted px-1.5 text-xs">{bikes.length}</span>
+          <TabsTrigger value="scooters">
+            <ScooterIcon className="size-4" />
+            Scooters
+            <span className="ml-1 rounded-full bg-muted px-1.5 text-xs">{scooters.length}</span>
           </TabsTrigger>
           <TabsTrigger value="other">
             <Package className="size-4" />
@@ -67,7 +67,7 @@ export function StockTables({
         </TabsList>
       </div>
 
-      <TabsContent value="bikes" className="mt-4 space-y-4">
+      <TabsContent value="scooters" className="mt-4 space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <SearchInput placeholder="Search make, model, chassis, color…" className="flex-1" />
           <div className="flex gap-2">
@@ -96,23 +96,23 @@ export function StockTables({
           <div className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm whitespace-nowrap">
             <Layers className="size-4 text-muted-foreground" />
             <span className="text-muted-foreground">Qty</span>
-            <span className="font-semibold">{bikes.length} Items</span>
+            <span className="font-semibold">{scooters.length} Items</span>
           </div>
         </div>
 
         <Card className="overflow-hidden py-0">
-          {bikes.length === 0 ? (
+          {scooters.length === 0 ? (
             <EmptyState
-              icon={BikeIcon}
-              title="No bikes found"
-              description="Bikes you purchase will appear here as stock."
+              icon={ScooterIcon}
+              title="No scooters found"
+              description="Scooters you purchase will appear here as stock."
             />
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Bike</TableHead>
+                    <TableHead>Scooter</TableHead>
                     <TableHead>Model</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Color</TableHead>
@@ -122,20 +122,20 @@ export function StockTables({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {bikes.map((bike) => (
-                    <TableRow key={bike.id}>
-                      <TableCell className="font-medium">{bike.make}</TableCell>
+                  {scooters.map((scooter) => (
+                    <TableRow key={scooter.id}>
+                      <TableCell className="font-medium">{scooter.make}</TableCell>
                       <TableCell>
-                        {bike.model} {bike.year ? `(${bike.year})` : ""}
+                        {scooter.model} {scooter.year ? `(${scooter.year})` : ""}
                       </TableCell>
-                      <TableCell>{bike.vehicle_type}</TableCell>
-                      <TableCell>{bike.color || "—"}</TableCell>
-                      <TableCell className="font-mono text-xs">{bike.chassis_no || "N/A"}</TableCell>
+                      <TableCell>{scooter.vehicle_type}</TableCell>
+                      <TableCell>{scooter.color || "—"}</TableCell>
+                      <TableCell className="font-mono text-xs">{scooter.chassis_no || "N/A"}</TableCell>
                       <TableCell>
-                        <StatusBadge status={bike.status} />
+                        <StatusBadge status={scooter.status} />
                       </TableCell>
                       <TableCell className="text-right font-semibold">
-                        {formatCurrency(bike.purchase_price)}
+                        {formatCurrency(scooter.purchase_price)}
                       </TableCell>
                     </TableRow>
                   ))}

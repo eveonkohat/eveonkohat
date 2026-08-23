@@ -14,7 +14,7 @@ export const installmentCustomerSchema = z.object({
 
 export const installmentSaleSchema = z.object({
   customer_id: z.string().min(1, "Select a customer"),
-  bike_id: z.string().optional(),
+  scooter_id: z.string().optional(),
   item_description: z.string().optional(),
   sale_date: z.string().min(1),
   total_amount: z.coerce.number().min(0),

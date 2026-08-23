@@ -3,7 +3,7 @@ import {
   TrendingUp,
   ShoppingCart,
   Layers,
-  Bike,
+  Scooter,
   Wallet,
   Receipt,
   BarChart3,
@@ -49,7 +49,7 @@ export default async function DashboardPage() {
         <StatCard
           label="Stock Value"
           value={formatCurrency(kpis.stockValue)}
-          icon={Bike}
+          icon={Scooter}
         />
         <StatCard
           label="Cash in Hand"

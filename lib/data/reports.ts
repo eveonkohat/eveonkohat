@@ -12,20 +12,20 @@ export async function getReportData(tenantId: string, slug: string): Promise<Rep
 
   switch (slug) {
     case "sales-summary": {
-      const [bikeSales, posSales] = await Promise.all([
-        supabase.from("bike_sales").select("date, customer_name, total_amount").eq("tenant_id", tenantId),
+      const [scooterSales, posSales] = await Promise.all([
+        supabase.from("scooter_sales").select("date, customer_name, total_amount").eq("tenant_id", tenantId),
         supabase.from("pos_sales").select("date, customer_name, grand_total").eq("tenant_id", tenantId),
       ])
       const rows = [
-        ...(bikeSales.data ?? []).map((s) => [formatDate(s.date), s.customer_name, "Bike Sale", formatCurrency(s.total_amount)]),
+        ...(scooterSales.data ?? []).map((s) => [formatDate(s.date), s.customer_name, "Scooter Sale", formatCurrency(s.total_amount)]),
         ...(posSales.data ?? []).map((s) => [formatDate(s.date), s.customer_name, "POS Sale", formatCurrency(s.grand_total)]),
       ].sort((a, b) => (a[0] < b[0] ? 1 : -1))
       return { kind: "table", columns: ["Date", "Customer", "Type", "Amount"], rows }
     }
 
     case "income-report": {
-      const [bikeSales, posSales, otherIncome] = await Promise.all([
-        supabase.from("bike_sales").select("date, total_amount").eq("tenant_id", tenantId),
+      const [scooterSales, posSales, otherIncome] = await Promise.all([
+        supabase.from("scooter_sales").select("date, total_amount").eq("tenant_id", tenantId),
         supabase.from("pos_sales").select("date, grand_total").eq("tenant_id", tenantId),
         supabase
           .from("account_transactions")
@@ -34,7 +34,7 @@ export async function getReportData(tenantId: string, slug: string): Promise<Rep
           .eq("source_type", "other_income"),
       ])
       const byDate = new Map<string, number>()
-      for (const s of bikeSales.data ?? []) byDate.set(s.date, (byDate.get(s.date) ?? 0) + Number(s.total_amount))
+      for (const s of scooterSales.data ?? []) byDate.set(s.date, (byDate.get(s.date) ?? 0) + Number(s.total_amount))
       for (const s of posSales.data ?? []) byDate.set(s.date, (byDate.get(s.date) ?? 0) + Number(s.grand_total))
       for (const s of otherIncome.data ?? []) byDate.set(s.date, (byDate.get(s.date) ?? 0) + Number(s.amount))
       const rows = [...byDate.entries()]
@@ -44,15 +44,15 @@ export async function getReportData(tenantId: string, slug: string): Promise<Rep
     }
 
     case "payment-collection": {
-      const [bikeSales, posSales, installments] = await Promise.all([
-        supabase.from("bike_sales").select("date, customer_name, received_amount").eq("tenant_id", tenantId),
+      const [scooterSales, posSales, installments] = await Promise.all([
+        supabase.from("scooter_sales").select("date, customer_name, received_amount").eq("tenant_id", tenantId),
         supabase.from("pos_sales").select("date, customer_name, received_amount").eq("tenant_id", tenantId),
         supabase.from("installment_payments").select("payment_date, amount").eq("tenant_id", tenantId),
       ])
       const rows = [
-        ...(bikeSales.data ?? [])
+        ...(scooterSales.data ?? [])
           .filter((s) => Number(s.received_amount) > 0)
-          .map((s) => [formatDate(s.date), s.customer_name, "Bike Sale", formatCurrency(s.received_amount)]),
+          .map((s) => [formatDate(s.date), s.customer_name, "Scooter Sale", formatCurrency(s.received_amount)]),
         ...(posSales.data ?? [])
           .filter((s) => Number(s.received_amount) > 0)
           .map((s) => [formatDate(s.date), s.customer_name, "POS Sale", formatCurrency(s.received_amount)]),
@@ -62,9 +62,9 @@ export async function getReportData(tenantId: string, slug: string): Promise<Rep
     }
 
     case "top-selling-models": {
-      const { data: bikes } = await supabase.from("bikes").select("make, model, status").eq("tenant_id", tenantId)
+      const { data: scooters } = await supabase.from("scooters").select("make, model, status").eq("tenant_id", tenantId)
       const counts = new Map<string, number>()
-      for (const b of bikes ?? []) {
+      for (const b of scooters ?? []) {
         if (b.status !== "sold") continue
         const key = `${b.make} ${b.model}`
         counts.set(key, (counts.get(key) ?? 0) + 1)
@@ -121,14 +121,14 @@ export async function getReportData(tenantId: string, slug: string): Promise<Rep
         formatCurrency(p.tax_per_unit),
         formatCurrency(p.tax_per_unit * p.quantity),
       ])
-      return { kind: "table", columns: ["Date", "Bike", "Qty", "Tax / Unit", "Total Tax"], rows }
+      return { kind: "table", columns: ["Date", "Scooter", "Qty", "Tax / Unit", "Total Tax"], rows }
     }
 
     case "stock-report":
     case "available-stock":
     case "sold-stock": {
       let query = supabase
-        .from("bikes")
+        .from("scooters")
         .select("make, model, chassis_no, status, purchase_price")
         .eq("tenant_id", tenantId)
       if (slug === "available-stock") query = query.eq("status", "in_stock")
@@ -140,12 +140,12 @@ export async function getReportData(tenantId: string, slug: string): Promise<Rep
         b.status,
         formatCurrency(b.purchase_price),
       ])
-      return { kind: "table", columns: ["Bike", "Chassis No.", "Status", "Value"], rows }
+      return { kind: "table", columns: ["Scooter", "Chassis No.", "Status", "Value"], rows }
     }
 
     case "stock-aging": {
       const { data } = await supabase
-        .from("bikes")
+        .from("scooters")
         .select("make, model, created_at")
         .eq("tenant_id", tenantId)
         .eq("status", "in_stock")
@@ -156,16 +156,16 @@ export async function getReportData(tenantId: string, slug: string): Promise<Rep
           return [`${b.make} ${b.model}`, formatDate(b.created_at), `${days} days`]
         })
         .sort((a, b) => Number(b[2].split(" ")[0]) - Number(a[2].split(" ")[0]))
-      return { kind: "table", columns: ["Bike", "Purchased On", "Days In Stock"], rows }
+      return { kind: "table", columns: ["Scooter", "Purchased On", "Days In Stock"], rows }
     }
 
     case "stock-valuation": {
-      const [bikes, otherItems] = await Promise.all([
-        supabase.from("bikes").select("make, model, purchase_price").eq("tenant_id", tenantId).eq("status", "in_stock"),
+      const [scooters, otherItems] = await Promise.all([
+        supabase.from("scooters").select("make, model, purchase_price").eq("tenant_id", tenantId).eq("status", "in_stock"),
         supabase.from("other_items").select("item_name, unit_price, quantity_remaining").eq("tenant_id", tenantId),
       ])
       const rows = [
-        ...(bikes.data ?? []).map((b) => [`${b.make} ${b.model}`, "1", formatCurrency(b.purchase_price)]),
+        ...(scooters.data ?? []).map((b) => [`${b.make} ${b.model}`, "1", formatCurrency(b.purchase_price)]),
         ...(otherItems.data ?? [])
           .filter((i) => i.quantity_remaining > 0)
           .map((i) => [i.item_name, String(i.quantity_remaining), formatCurrency(i.unit_price * i.quantity_remaining)]),
@@ -273,15 +273,15 @@ export async function getReportData(tenantId: string, slug: string): Promise<Rep
         String(p.quantity),
         formatCurrency(p.total_amount),
       ])
-      return { kind: "table", columns: ["Date", "Bike", "Qty", "Total"], rows }
+      return { kind: "table", columns: ["Date", "Scooter", "Qty", "Total"], rows }
     }
 
     case "profit-and-loss":
       return { kind: "redirect", href: "/pl" }
 
     case "monthly-summary": {
-      const { data: bikeSales } = await supabase
-        .from("bike_sales")
+      const { data: scooterSales } = await supabase
+        .from("scooter_sales")
         .select("date, total_amount")
         .eq("tenant_id", tenantId)
       const { data: posSales } = await supabase
@@ -296,7 +296,7 @@ export async function getReportData(tenantId: string, slug: string): Promise<Rep
         entry[field] += amount
         byMonth.set(key, entry)
       }
-      for (const s of bikeSales ?? []) bump(s.date.slice(0, 7), "revenue", Number(s.total_amount))
+      for (const s of scooterSales ?? []) bump(s.date.slice(0, 7), "revenue", Number(s.total_amount))
       for (const s of posSales ?? []) bump(s.date.slice(0, 7), "revenue", Number(s.grand_total))
       for (const e of expenses ?? []) bump(e.date.slice(0, 7), "expense", Number(e.amount))
 

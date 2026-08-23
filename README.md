@@ -1,4 +1,4 @@
-# EveonKohat Bike SaaS
+# EveonKohat Scooter SaaS
 
 A premium showroom management application — inventory, purchases, sales, installment
 plans, accounts/cash book, expenses, reports, and P&L — built with Next.js (App Router)
@@ -37,8 +37,8 @@ supabase link --project-ref <project-ref>
 supabase db push
 ```
 
-This creates the multi-tenant schema (`tenants`, `profiles`, `bikes`, `purchases`,
-`bike_sales`, `pos_sales`, `installment_*`, `accounts`, `account_transactions`,
+This creates the multi-tenant schema (`tenants`, `profiles`, `scooters`, `purchases`,
+`scooter_sales`, `pos_sales`, `installment_*`, `accounts`, `account_transactions`,
 `expenses`, `parties`, …), enables Row Level Security with tenant-isolation policies
 on every table, and creates a few Postgres functions used by the app:
 

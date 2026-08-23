@@ -1,10 +1,10 @@
 import "server-only"
 import { createClient } from "@/lib/supabase/server"
 
-export async function getBikeSales(tenantId: string, search?: string) {
+export async function getScooterSales(tenantId: string, search?: string) {
   const supabase = await createClient()
   let query = supabase
-    .from("bike_sales")
+    .from("scooter_sales")
     .select("*")
     .eq("tenant_id", tenantId)
     .order("date", { ascending: false })
@@ -18,13 +18,13 @@ export async function getBikeSales(tenantId: string, search?: string) {
   const { data: sales } = await query
   if (!sales || sales.length === 0) return []
 
-  const bikeIds = [...new Set(sales.map((s) => s.bike_id).filter(Boolean))] as string[]
-  const bikes = bikeIds.length
-    ? (await supabase.from("bikes").select("id, make, model, chassis_no, engine_no").in("id", bikeIds)).data ?? []
+  const scooterIds = [...new Set(sales.map((s) => s.scooter_id).filter(Boolean))] as string[]
+  const scooters = scooterIds.length
+    ? (await supabase.from("scooters").select("id, make, model, chassis_no, engine_no").in("id", scooterIds)).data ?? []
     : []
-  const bikeById = new Map(bikes.map((b) => [b.id, b]))
+  const scooterById = new Map(scooters.map((b) => [b.id, b]))
 
-  return sales.map((s) => ({ ...s, bike: s.bike_id ? bikeById.get(s.bike_id) : undefined }))
+  return sales.map((s) => ({ ...s, scooter: s.scooter_id ? scooterById.get(s.scooter_id) : undefined }))
 }
 
 export async function getPosSales(tenantId: string, search?: string) {
@@ -43,10 +43,10 @@ export async function getPosSales(tenantId: string, search?: string) {
   return data ?? []
 }
 
-export async function getSellableBikes(tenantId: string) {
+export async function getSellableScooters(tenantId: string) {
   const supabase = await createClient()
   const { data } = await supabase
-    .from("bikes")
+    .from("scooters")
     .select("*")
     .eq("tenant_id", tenantId)
     .eq("status", "in_stock")

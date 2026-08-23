@@ -44,7 +44,7 @@ export function StockInsightsCard({
 
           <TabsContent value="top-selling" className="mt-4">
             {topSelling.length === 0 ? (
-              <EmptyState icon={PackageSearch} title="No sales yet" description="Top selling models will appear here once bikes are sold." />
+              <EmptyState icon={PackageSearch} title="No sales yet" description="Top selling models will appear here once scooters are sold." />
             ) : (
               <ul className="divide-y">
                 {topSelling.map((item) => (
