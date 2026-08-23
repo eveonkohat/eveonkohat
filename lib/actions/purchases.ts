@@ -230,6 +230,16 @@ export async function createPurchaseReturn(formData: FormData): Promise<ActionRe
 
 export async function deletePurchase(id: string): Promise<ActionResult> {
   const { supabase, tenantId } = await requireTenant()
+
+  const { error: scootersError } = await supabase
+    .from("scooters")
+    .delete()
+    .eq("purchase_id", id)
+    .eq("tenant_id", tenantId)
+    .eq("status", "in_stock")
+
+  if (scootersError) return { success: false, error: scootersError.message }
+
   const { error } = await supabase
     .from("purchases")
     .delete()
