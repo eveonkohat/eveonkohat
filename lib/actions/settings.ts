@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireTenant } from "./require-tenant"
 import { showroomInfoSchema } from "@/lib/validations/settings"
+import { changePasswordSchema } from "@/lib/validations/auth"
 import type { ActionResult } from "./require-tenant"
 
 export async function updateShowroomInfo(formData: FormData): Promise<ActionResult> {
@@ -95,6 +96,47 @@ export async function removeTeamMember(id: string): Promise<ActionResult> {
   if (error) return { success: false, error: error.message }
 
   revalidatePath("/settings")
+  return { success: true }
+}
+
+export async function changePassword(formData: FormData): Promise<ActionResult> {
+  const parsed = changePasswordSchema.safeParse({
+    currentPassword: formData.get("currentPassword"),
+    newPassword: formData.get("newPassword"),
+    confirmPassword: formData.get("confirmPassword"),
+  })
+
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" }
+  }
+
+  const { supabase } = await requireTenant()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user?.email) {
+    return { success: false, error: "Not authenticated" }
+  }
+
+  const { error: verifyError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: parsed.data.currentPassword,
+  })
+
+  if (verifyError) {
+    return { success: false, error: "Current password is incorrect" }
+  }
+
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: parsed.data.newPassword,
+  })
+
+  if (updateError) {
+    return { success: false, error: updateError.message }
+  }
+
   return { success: true }
 }
 

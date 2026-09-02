@@ -1,11 +1,12 @@
 import type { Metadata } from "next"
-import { Building2, Users, CreditCard, Trash2 } from "lucide-react"
+import { Building2, Users, CreditCard, Trash2, KeyRound } from "lucide-react"
 import { getSessionContext } from "@/lib/data/session"
 import { getTeamMembers } from "@/lib/data/settings"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { ShowroomInfoForm } from "@/components/settings/showroom-info-form"
 import { UserManagementPanel } from "@/components/settings/user-management-panel"
+import { ChangePasswordForm } from "@/components/settings/change-password-form"
 import { SystemResetPanel } from "@/components/settings/system-reset-panel"
 import { formatNumber } from "@/lib/utils/format"
 
@@ -33,6 +34,10 @@ export default async function SettingsPage() {
           <TabsTrigger value="subscription">
             <CreditCard className="size-4" />
             Subscription
+          </TabsTrigger>
+          <TabsTrigger value="account">
+            <KeyRound className="size-4" />
+            Change Password
           </TabsTrigger>
           <TabsTrigger value="reset" className="data-[state=active]:bg-destructive data-[state=active]:text-white">
             <Trash2 className="size-4" />
@@ -77,6 +82,14 @@ export default async function SettingsPage() {
               <p className="mt-4 text-center text-sm text-muted-foreground">
                 To upgrade your plan, contact your platform administrator.
               </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="account" className="mt-4">
+          <Card>
+            <CardContent className="pt-2">
+              <ChangePasswordForm />
             </CardContent>
           </Card>
         </TabsContent>
