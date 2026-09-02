@@ -37,6 +37,7 @@ export function InstallmentsTabs({
   terms,
   accounts,
   scooters,
+  canOverride,
 }: {
   stats: {
     customerCount: number
@@ -51,6 +52,7 @@ export function InstallmentsTabs({
   terms: InstallmentTerm[]
   accounts: Account[]
   scooters: Scooter[]
+  canOverride: boolean
 }) {
   return (
     <Tabs defaultValue="dashboard">
@@ -99,7 +101,7 @@ export function InstallmentsTabs({
 
         <div>
           <h3 className="mb-3 text-sm font-semibold">Installment Purchases</h3>
-          <SalesTable sales={sales} accounts={accounts} showActions="payment" />
+          <SalesTable sales={sales} accounts={accounts} showActions="payment" canOverride={canOverride} />
         </div>
       </TabsContent>
 
@@ -165,7 +167,7 @@ export function InstallmentsTabs({
           <SearchInput placeholder="Search customer, CNIC, phone, item…" className="max-w-md" />
           <InstallmentSaleDialog customers={customers} scooters={scooters} />
         </div>
-        <SalesTable sales={sales} accounts={accounts} showActions="delete" />
+        <SalesTable sales={sales} accounts={accounts} showActions="delete" canOverride={canOverride} />
       </TabsContent>
 
       <TabsContent value="terms" className="mt-4">
@@ -179,10 +181,12 @@ function SalesTable({
   sales,
   accounts,
   showActions,
+  canOverride,
 }: {
   sales: SaleWithCustomer[]
   accounts: Account[]
   showActions: "payment" | "delete"
+  canOverride: boolean
 }) {
   return (
     <Card className="overflow-hidden py-0">
@@ -226,6 +230,7 @@ function SalesTable({
                           saleId={sale.id}
                           perInstallment={Number(sale.per_installment)}
                           accounts={accounts}
+                          canOverride={canOverride}
                         />
                       ) : null}
                       {showActions === "delete" ? (

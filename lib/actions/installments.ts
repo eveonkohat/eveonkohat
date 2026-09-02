@@ -85,11 +85,16 @@ export async function createInstallmentSale(formData: FormData): Promise<ActionR
   if (d.scooter_id) {
     const { data: scooter } = await supabase
       .from("scooters")
-      .select("make, model")
+      .select("make, model, status")
       .eq("id", d.scooter_id)
       .eq("tenant_id", tenantId)
       .single()
-    if (scooter) itemDescription = `${scooter.make} ${scooter.model}`
+
+    if (!scooter || scooter.status !== "in_stock") {
+      return { success: false, error: "This scooter is no longer available for sale" }
+    }
+
+    itemDescription = `${scooter.make} ${scooter.model}`
   }
 
   const { error } = await supabase.from("installment_sales").insert({
@@ -159,15 +164,17 @@ export async function recordInstallmentPayment(formData: FormData): Promise<Acti
     installment_sale_id: fd(formData, "installment_sale_id"),
     amount: fd(formData, "amount"),
     payment_date: fd(formData, "payment_date"),
+    payment_method: fd(formData, "payment_method") ?? "Cash",
     account_id: fd(formData, "account_id"),
     notes: fd(formData, "notes"),
+    allow_overpayment: formData.get("allow_overpayment") === "on",
   })
 
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" }
   }
 
-  const { supabase, tenantId } = await requireTenant()
+  const { supabase, tenantId, role } = await requireTenant()
   const d = parsed.data
 
   const { data: sale } = await supabase
@@ -179,18 +186,24 @@ export async function recordInstallmentPayment(formData: FormData): Promise<Acti
 
   if (!sale) return { success: false, error: "Installment plan not found" }
 
+  const newPaid = Number(sale.paid_amount) + d.amount
+
+  if (newPaid > Number(sale.total_amount) && !(d.allow_overpayment && role === "tenant-owner")) {
+    return { success: false, error: "This payment would exceed the total price. Ask the showroom owner to allow overpayment if this is intentional." }
+  }
+
   const { error: paymentError } = await supabase.from("installment_payments").insert({
     tenant_id: tenantId,
     installment_sale_id: d.installment_sale_id,
     amount: d.amount,
     payment_date: d.payment_date,
+    payment_method: d.payment_method,
     account_id: d.account_id || null,
     notes: d.notes || null,
   })
 
   if (paymentError) return { success: false, error: paymentError.message }
 
-  const newPaid = Number(sale.paid_amount) + d.amount
   const newBalance = Math.max(Number(sale.total_amount) - newPaid, 0)
 
   await supabase
@@ -214,6 +227,60 @@ export async function recordInstallmentPayment(formData: FormData): Promise<Acti
       sourceType: "installment_payment",
       sourceId: d.installment_sale_id,
     })
+  }
+
+  revalidatePath("/installments")
+  revalidatePath("/dashboard")
+  return { success: true }
+}
+
+export async function deleteInstallmentPayment(paymentId: string): Promise<ActionResult> {
+  const { supabase, tenantId } = await requireTenant()
+
+  const { data: payment } = await supabase
+    .from("installment_payments")
+    .select("installment_sale_id")
+    .eq("id", paymentId)
+    .eq("tenant_id", tenantId)
+    .single()
+
+  if (!payment) return { success: false, error: "Payment not found" }
+
+  const { error: deleteError } = await supabase
+    .from("installment_payments")
+    .delete()
+    .eq("id", paymentId)
+    .eq("tenant_id", tenantId)
+
+  if (deleteError) return { success: false, error: deleteError.message }
+
+  const { data: sale } = await supabase
+    .from("installment_sales")
+    .select("total_amount, down_payment")
+    .eq("id", payment.installment_sale_id)
+    .eq("tenant_id", tenantId)
+    .single()
+
+  if (sale) {
+    const { data: remaining } = await supabase
+      .from("installment_payments")
+      .select("amount")
+      .eq("installment_sale_id", payment.installment_sale_id)
+      .eq("tenant_id", tenantId)
+
+    const newPaid =
+      Number(sale.down_payment) + (remaining ?? []).reduce((sum, p) => sum + Number(p.amount), 0)
+    const newBalance = Math.max(Number(sale.total_amount) - newPaid, 0)
+
+    await supabase
+      .from("installment_sales")
+      .update({
+        paid_amount: newPaid,
+        balance: newBalance,
+        status: newBalance === 0 ? "completed" : "active",
+      })
+      .eq("id", payment.installment_sale_id)
+      .eq("tenant_id", tenantId)
   }
 
   revalidatePath("/installments")

@@ -15,7 +15,8 @@ export default async function SalePage({
   searchParams: Promise<{ search?: string }>
 }) {
   const { search } = await searchParams
-  const { tenant } = await getSessionContext()
+  const { tenant, profile } = await getSessionContext()
+  const canOverride = profile.role === "tenant-owner"
 
   const [scooterSales, posSales, sellableScooters, accounts] = await Promise.all([
     getScooterSales(tenant.id, search),
@@ -32,12 +33,12 @@ export default async function SalePage({
         description="View and manage every cash sale order."
         action={
           <>
-            <ScooterSaleDialog scooters={sellableScooters} accounts={accounts} />
+            <ScooterSaleDialog scooters={sellableScooters} accounts={accounts} canOverride={canOverride} />
             <PosSaleDialog accounts={accounts} />
           </>
         }
       />
-      <SaleTables scooterSales={scooterSales} posSales={posSales} />
+      <SaleTables scooterSales={scooterSales} posSales={posSales} accounts={accounts} canOverride={canOverride} />
     </div>
   )
 }

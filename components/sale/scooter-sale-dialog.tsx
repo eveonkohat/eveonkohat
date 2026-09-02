@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -24,6 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { createScooterSale } from "@/lib/actions/sales"
+import { PAYMENT_METHODS } from "@/lib/validations/sales"
 import { formatCurrency } from "@/lib/utils/format"
 import type { Account, Scooter } from "@/types/database"
 
@@ -39,7 +41,15 @@ function SubmitButton() {
   )
 }
 
-export function ScooterSaleDialog({ scooters, accounts }: { scooters: Scooter[]; accounts: Account[] }) {
+export function ScooterSaleDialog({
+  scooters,
+  accounts,
+  canOverride,
+}: {
+  scooters: Scooter[]
+  accounts: Account[]
+  canOverride: boolean
+}) {
   const [open, setOpen] = useState(false)
   const [scooterId, setScooterId] = useState("")
   const [total, setTotal] = useState(0)
@@ -156,15 +166,15 @@ export function ScooterSaleDialog({ scooters, accounts }: { scooters: Scooter[];
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="payment_account_id">Payment Account</Label>
-              <Select name="payment_account_id">
-                <SelectTrigger id="payment_account_id" className="w-full">
-                  <SelectValue placeholder="Select account" />
+              <Label htmlFor="payment_method">Payment Method</Label>
+              <Select name="payment_method" defaultValue="Cash">
+                <SelectTrigger id="payment_method" className="w-full">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {accounts.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>
-                      {a.name}
+                  {PAYMENT_METHODS.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -173,9 +183,38 @@ export function ScooterSaleDialog({ scooters, accounts }: { scooters: Scooter[];
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="payment_account_id">Payment Account</Label>
+            <Select name="payment_account_id">
+              <SelectTrigger id="payment_account_id" className="w-full">
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="notes">Notes (Optional)</Label>
             <Input id="notes" name="notes" placeholder="Additional notes…" />
           </div>
+
+          {received > total && total > 0 ? (
+            canOverride ? (
+              <label className="flex items-center gap-2 text-sm text-warning-foreground">
+                <Checkbox name="allow_overpayment" value="on" />
+                Received amount exceeds total price — allow this overpayment
+              </label>
+            ) : (
+              <p className="text-sm font-medium text-destructive">
+                Received amount cannot exceed the total price.
+              </p>
+            )
+          ) : null}
 
           {state.error ? <p className="text-sm font-medium text-destructive">{state.error}</p> : null}
 

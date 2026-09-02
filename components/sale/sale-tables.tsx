@@ -14,19 +14,24 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { ConfirmDeleteButton } from "@/components/shared/confirm-delete-button"
 import { SearchInput } from "@/components/shared/search-input"
 import { StatusBadge } from "@/components/shared/status-badge"
+import { AddPaymentDialog } from "@/components/customers/add-payment-dialog"
 import { deleteScooterSale, deletePosSale } from "@/lib/actions/sales"
 import { formatCurrency, formatDate } from "@/lib/utils/format"
 import { ShoppingCart, Package } from "lucide-react"
-import type { Scooter, ScooterSale, PosSale } from "@/types/database"
+import type { Account, Scooter, ScooterSale, PosSale } from "@/types/database"
 
 type ScooterSaleWithScooter = ScooterSale & { scooter?: Pick<Scooter, "id" | "make" | "model" | "chassis_no" | "engine_no"> }
 
 export function SaleTables({
   scooterSales,
   posSales,
+  accounts,
+  canOverride,
 }: {
   scooterSales: ScooterSaleWithScooter[]
   posSales: PosSale[]
+  accounts: Account[]
+  canOverride: boolean
 }) {
   return (
     <Tabs defaultValue="scooter">
@@ -94,6 +99,14 @@ export function SaleTables({
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-2">
+                          {sale.balance > 0 ? (
+                            <AddPaymentDialog
+                              saleId={sale.id}
+                              remainingBalance={Number(sale.balance)}
+                              accounts={accounts}
+                              canOverride={canOverride}
+                            />
+                          ) : null}
                           <ConfirmDeleteButton
                             title="Delete this sale?"
                             description="The scooter will be returned to available stock."

@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+export const PAYMENT_METHODS = ["Cash", "Bank Transfer", "Cheque", "JazzCash", "EasyPaisa", "Card", "Other"] as const
+
 export const scooterSaleSchema = z.object({
   scooter_id: z.string().min(1, "Select a scooter to sell"),
   customer_name: z.string().min(1, "Customer name is required"),
@@ -8,8 +10,20 @@ export const scooterSaleSchema = z.object({
   date: z.string().min(1),
   total_amount: z.coerce.number().min(0),
   received_amount: z.coerce.number().min(0).default(0),
+  payment_method: z.string().min(1).default("Cash"),
   payment_account_id: z.string().optional(),
   notes: z.string().optional(),
+  allow_overpayment: z.boolean().default(false),
+})
+
+export const scooterSalePaymentSchema = z.object({
+  scooter_sale_id: z.string().min(1),
+  amount: z.coerce.number().positive("Amount must be greater than zero"),
+  payment_date: z.string().min(1),
+  payment_method: z.string().min(1).default("Cash"),
+  account_id: z.string().optional(),
+  notes: z.string().optional(),
+  allow_overpayment: z.boolean().default(false),
 })
 
 export const posLineItemSchema = z.object({
@@ -33,4 +47,5 @@ export const posSaleSchema = z.object({
 })
 
 export type ScooterSaleInput = z.infer<typeof scooterSaleSchema>
+export type ScooterSalePaymentInput = z.infer<typeof scooterSalePaymentSchema>
 export type PosSaleInput = z.infer<typeof posSaleSchema>

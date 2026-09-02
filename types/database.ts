@@ -235,6 +235,19 @@ type InstallmentPaymentRow = {
   installment_sale_id: string
   payment_date: string
   amount: number
+  payment_method: string
+  account_id: string | null
+  notes: string | null
+  created_at: string
+}
+
+type ScooterSalePaymentRow = {
+  id: string
+  tenant_id: string
+  scooter_sale_id: string
+  payment_date: string
+  amount: number
+  payment_method: string
   account_id: string | null
   notes: string | null
   created_at: string
@@ -289,6 +302,7 @@ export type Database = {
       installment_payments: TableDef<InstallmentPaymentRow>
       installment_terms: TableDef<InstallmentTermRow>
       expenses: TableDef<ExpenseRow>
+      scooter_sale_payments: TableDef<ScooterSalePaymentRow>
     }
     Views: Record<string, never>
     Functions: {
@@ -360,3 +374,4 @@ export type InstallmentSale = InstallmentSaleRow
 export type InstallmentPayment = InstallmentPaymentRow
 export type InstallmentTerm = InstallmentTermRow
 export type Expense = ExpenseRow
+export type ScooterSalePayment = ScooterSalePaymentRow

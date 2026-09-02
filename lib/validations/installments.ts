@@ -26,8 +26,10 @@ export const installmentPaymentSchema = z.object({
   installment_sale_id: z.string().min(1),
   amount: z.coerce.number().positive("Amount must be greater than zero"),
   payment_date: z.string().min(1),
+  payment_method: z.string().min(1).default("Cash"),
   account_id: z.string().optional(),
   notes: z.string().optional(),
+  allow_overpayment: z.boolean().default(false),
 })
 
 export const installmentTermSchema = z.object({

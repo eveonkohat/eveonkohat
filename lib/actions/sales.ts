@@ -3,9 +3,14 @@
 import { revalidatePath } from "next/cache"
 import { requireTenant } from "./require-tenant"
 import { postLedgerEntry } from "./ledger"
-import { scooterSaleSchema, posSaleSchema } from "@/lib/validations/sales"
+import { scooterSaleSchema, scooterSalePaymentSchema, posSaleSchema } from "@/lib/validations/sales"
 import type { ActionResult } from "./require-tenant"
 import type { PosSaleItem } from "@/types/database"
+
+function computePaymentStatus(totalAmount: number, paidAmount: number): "received" | "partial" | "pending" {
+  if (paidAmount <= 0) return "pending"
+  return paidAmount >= totalAmount ? "received" : "partial"
+}
 
 export async function createScooterSale(formData: FormData): Promise<ActionResult> {
   const parsed = scooterSaleSchema.safeParse({
@@ -16,18 +21,25 @@ export async function createScooterSale(formData: FormData): Promise<ActionResul
     date: formData.get("date"),
     total_amount: formData.get("total_amount"),
     received_amount: formData.get("received_amount"),
+    payment_method: formData.get("payment_method") || "Cash",
     payment_account_id: formData.get("payment_account_id") || undefined,
     notes: formData.get("notes"),
+    allow_overpayment: formData.get("allow_overpayment") === "on",
   })
 
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" }
   }
 
-  const { supabase, tenantId } = await requireTenant()
+  const { supabase, tenantId, role } = await requireTenant()
   const d = parsed.data
+
+  if (d.received_amount > d.total_amount && !(d.allow_overpayment && role === "tenant-owner")) {
+    return { success: false, error: "Received amount cannot exceed the total price. Ask the showroom owner to allow overpayment if this is intentional." }
+  }
+
   const balance = Math.max(d.total_amount - d.received_amount, 0)
-  const paymentStatus = balance === 0 ? "received" : d.received_amount > 0 ? "partial" : "pending"
+  const paymentStatus = computePaymentStatus(d.total_amount, d.received_amount)
 
   const { data: scooter } = await supabase
     .from("scooters")
@@ -69,6 +81,18 @@ export async function createScooterSale(formData: FormData): Promise<ActionResul
     .eq("id", d.scooter_id)
     .eq("tenant_id", tenantId)
 
+  if (d.received_amount > 0) {
+    await supabase.from("scooter_sale_payments").insert({
+      tenant_id: tenantId,
+      scooter_sale_id: sale.id,
+      payment_date: d.date,
+      amount: d.received_amount,
+      payment_method: d.payment_method,
+      account_id: d.payment_account_id || null,
+      notes: "Initial payment at sale",
+    })
+  }
+
   if (d.received_amount > 0 && d.payment_account_id) {
     await postLedgerEntry(supabase, {
       tenantId,
@@ -83,7 +107,138 @@ export async function createScooterSale(formData: FormData): Promise<ActionResul
   }
 
   revalidatePath("/sale")
+  revalidatePath("/customers")
   revalidatePath("/stock")
+  revalidatePath("/dashboard")
+  return { success: true }
+}
+
+export async function recordScooterSalePayment(formData: FormData): Promise<ActionResult> {
+  const parsed = scooterSalePaymentSchema.safeParse({
+    scooter_sale_id: formData.get("scooter_sale_id"),
+    amount: formData.get("amount"),
+    payment_date: formData.get("payment_date"),
+    payment_method: formData.get("payment_method") || "Cash",
+    account_id: formData.get("account_id") || undefined,
+    notes: formData.get("notes"),
+    allow_overpayment: formData.get("allow_overpayment") === "on",
+  })
+
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" }
+  }
+
+  const { supabase, tenantId, role } = await requireTenant()
+  const d = parsed.data
+
+  const { data: sale } = await supabase
+    .from("scooter_sales")
+    .select("id, total_amount, received_amount, customer_name")
+    .eq("id", d.scooter_sale_id)
+    .eq("tenant_id", tenantId)
+    .single()
+
+  if (!sale) return { success: false, error: "Sale not found" }
+
+  const newPaid = Number(sale.received_amount) + d.amount
+
+  if (newPaid > Number(sale.total_amount) && !(d.allow_overpayment && role === "tenant-owner")) {
+    return { success: false, error: "This payment would exceed the total price. Ask the showroom owner to allow overpayment if this is intentional." }
+  }
+
+  const { error: paymentError } = await supabase.from("scooter_sale_payments").insert({
+    tenant_id: tenantId,
+    scooter_sale_id: d.scooter_sale_id,
+    payment_date: d.payment_date,
+    amount: d.amount,
+    payment_method: d.payment_method,
+    account_id: d.account_id || null,
+    notes: d.notes || null,
+  })
+
+  if (paymentError) return { success: false, error: paymentError.message }
+
+  const newBalance = Math.max(Number(sale.total_amount) - newPaid, 0)
+
+  await supabase
+    .from("scooter_sales")
+    .update({
+      received_amount: newPaid,
+      balance: newBalance,
+      payment_status: computePaymentStatus(Number(sale.total_amount), newPaid),
+    })
+    .eq("id", d.scooter_sale_id)
+    .eq("tenant_id", tenantId)
+
+  if (d.account_id) {
+    await postLedgerEntry(supabase, {
+      tenantId,
+      accountId: d.account_id,
+      direction: "in",
+      amount: d.amount,
+      category: "Scooter Sale Payment",
+      description: `Payment from ${sale.customer_name}`,
+      sourceType: "sale",
+      sourceId: d.scooter_sale_id,
+    })
+  }
+
+  revalidatePath("/sale")
+  revalidatePath("/customers")
+  revalidatePath("/dashboard")
+  return { success: true }
+}
+
+export async function deleteScooterSalePayment(paymentId: string): Promise<ActionResult> {
+  const { supabase, tenantId } = await requireTenant()
+
+  const { data: payment } = await supabase
+    .from("scooter_sale_payments")
+    .select("scooter_sale_id, amount")
+    .eq("id", paymentId)
+    .eq("tenant_id", tenantId)
+    .single()
+
+  if (!payment) return { success: false, error: "Payment not found" }
+
+  const { error: deleteError } = await supabase
+    .from("scooter_sale_payments")
+    .delete()
+    .eq("id", paymentId)
+    .eq("tenant_id", tenantId)
+
+  if (deleteError) return { success: false, error: deleteError.message }
+
+  const { data: sale } = await supabase
+    .from("scooter_sales")
+    .select("total_amount")
+    .eq("id", payment.scooter_sale_id)
+    .eq("tenant_id", tenantId)
+    .single()
+
+  if (sale) {
+    const { data: remaining } = await supabase
+      .from("scooter_sale_payments")
+      .select("amount")
+      .eq("scooter_sale_id", payment.scooter_sale_id)
+      .eq("tenant_id", tenantId)
+
+    const newPaid = (remaining ?? []).reduce((sum, p) => sum + Number(p.amount), 0)
+    const newBalance = Math.max(Number(sale.total_amount) - newPaid, 0)
+
+    await supabase
+      .from("scooter_sales")
+      .update({
+        received_amount: newPaid,
+        balance: newBalance,
+        payment_status: computePaymentStatus(Number(sale.total_amount), newPaid),
+      })
+      .eq("id", payment.scooter_sale_id)
+      .eq("tenant_id", tenantId)
+  }
+
+  revalidatePath("/sale")
+  revalidatePath("/customers")
   revalidatePath("/dashboard")
   return { success: true }
 }

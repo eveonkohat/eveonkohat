@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
-import { Loader2, ReceiptText } from "lucide-react"
+import { Loader2, Wallet } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,8 +24,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { recordInstallmentPayment } from "@/lib/actions/installments"
+import { recordScooterSalePayment } from "@/lib/actions/sales"
 import { PAYMENT_METHODS } from "@/lib/validations/sales"
+import { formatCurrency } from "@/lib/utils/format"
 import type { Account } from "@/types/database"
 
 type FormState = { error?: string }
@@ -35,52 +36,75 @@ function SubmitButton() {
   return (
     <Button type="submit" disabled={pending}>
       {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-      Record Payment
+      Save Payment
     </Button>
   )
 }
 
-export function RecordPaymentDialog({
+export function AddPaymentDialog({
   saleId,
-  perInstallment,
+  remainingBalance,
   accounts,
   canOverride,
+  open,
+  onOpenChange,
+  trigger,
 }: {
   saleId: string
-  perInstallment: number
+  remainingBalance: number
   accounts: Account[]
   canOverride: boolean
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  trigger?: React.ReactNode
 }) {
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isControlled = open !== undefined
+  const dialogOpen = isControlled ? open : internalOpen
+  const setDialogOpen = isControlled ? onOpenChange! : setInternalOpen
   const today = new Date().toISOString().slice(0, 10)
 
   const [state, formAction] = useActionState<FormState, FormData>(async (_prev, formData) => {
-    const result = await recordInstallmentPayment(formData)
+    const result = await recordScooterSalePayment(formData)
     if (!result.success) return { error: result.error }
     toast.success("Payment recorded")
-    setOpen(false)
+    setDialogOpen(false)
     return {}
   }, {})
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="text-success hover:text-success" title="Record payment">
-          <ReceiptText className="size-4" />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {trigger !== undefined ? (
+        trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null
+      ) : (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="icon" className="text-success hover:text-success" title="Add payment">
+            <Wallet className="size-4" />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Record Installment Payment</DialogTitle>
-          <DialogDescription>Log a payment received against this plan.</DialogDescription>
+          <DialogTitle>Add Payment</DialogTitle>
+          <DialogDescription>
+            Remaining balance: <span className="font-semibold text-destructive">{formatCurrency(remainingBalance)}</span>
+          </DialogDescription>
         </DialogHeader>
 
         <form action={formAction} className="grid gap-4">
-          <input type="hidden" name="installment_sale_id" value={saleId} />
+          <input type="hidden" name="scooter_sale_id" value={saleId} />
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount (PKR)</Label>
-            <Input id="amount" name="amount" type="number" step="0.01" defaultValue={perInstallment} required />
+            <Label htmlFor="amount">Payment Amount (PKR)</Label>
+            <Input
+              id="amount"
+              name="amount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              defaultValue={remainingBalance > 0 ? remainingBalance : undefined}
+              required
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="payment_date">Payment Date</Label>
@@ -102,7 +126,7 @@ export function RecordPaymentDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="account_id">Received In</Label>
+            <Label htmlFor="account_id">Received In (Optional)</Label>
             <Select name="account_id">
               <SelectTrigger id="account_id" className="w-full">
                 <SelectValue placeholder="Select account" />
@@ -118,7 +142,7 @@ export function RecordPaymentDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="notes">Notes (Optional)</Label>
-            <Input id="notes" name="notes" placeholder="e.g. Monthly installment" />
+            <Input id="notes" name="notes" placeholder="e.g. Partial payment" />
           </div>
 
           {canOverride ? (

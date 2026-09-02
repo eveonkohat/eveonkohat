@@ -19,7 +19,7 @@ export default async function InstallmentsPage({
   searchParams: Promise<{ search?: string }>
 }) {
   const { search } = await searchParams
-  const { tenant } = await getSessionContext()
+  const { tenant, profile } = await getSessionContext()
 
   const [stats, customers, sales, terms, accounts, scooters] = await Promise.all([
     getInstallmentDashboardStats(tenant.id),
@@ -43,6 +43,7 @@ export default async function InstallmentsPage({
         terms={terms}
         accounts={accounts}
         scooters={scooters}
+        canOverride={profile.role === "tenant-owner"}
       />
     </div>
   )

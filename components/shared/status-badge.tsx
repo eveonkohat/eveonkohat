@@ -17,6 +17,9 @@ const STATUS_STYLES: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   "in-stock": "In Stock",
   in_stock: "In Stock",
+  received: "Fully Paid",
+  partial: "Partially Paid",
+  pending: "Unpaid",
 }
 
 export function StatusBadge({ status }: { status: string }) {
